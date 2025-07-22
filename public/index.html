@@ -1,0 +1,1125 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    </script>
+</body>
+</html><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豚小屋神殿の秘宝 - 最後に笑うのは誰だ？</title>
+    
+    <!-- Socket.io -->
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #04384c 0%, #022838 50%, #011825 100%);
+            color: #e8f4f8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px #04384c;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #87CEEB;
+            font-style: italic;
+        }
+
+        .player-name-display {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-weight: bold;
+            border: 2px solid #FFD700;
+            z-index: 100;
+        }
+
+        .lobby {
+            background: rgba(4, 56, 76, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(135, 206, 235, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .room-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-section {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .control-section h3 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #87CEEB;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #04384c;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #e8f4f8;
+            font-size: 16px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #87CEEB;
+            box-shadow: 0 0 10px rgba(135, 206, 235, 0.3);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #04384c, #065a7a);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(4, 56, 76, 0.4);
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #065a7a, #0876a0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(4, 56, 76, 0.6);
+        }
+
+        .btn:disabled {
+            background: #2a2a2a;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .room-list {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .room-list h3 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+        }
+
+        .room-item {
+            background: rgba(4, 56, 76, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(135, 206, 235, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .room-item:hover {
+            background: rgba(4, 56, 76, 0.5);
+            transform: translateX(5px);
+        }
+
+        .room-item-info {
+            flex: 1;
+        }
+
+        .room-item .btn {
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        .password-icon {
+            color: #FFD700;
+            margin-left: 10px;
+        }
+
+        .room-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border: 2px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .room-id-display {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .players-list {
+            background: rgba(4, 56, 76, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .player-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item.host::after {
+            content: "👑";
+            margin-left: 10px;
+        }
+
+        .game-board {
+            display: none;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .game-info {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: rgba(4, 56, 76, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(135, 206, 235, 0.3);
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #87CEEB;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .role-card {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 3px solid #04384c;
+            text-align: center;
+        }
+
+        .role-adventurer {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .role-guardian {
+            border-color: #8B0000;
+            background: rgba(139, 0, 0, 0.1);
+        }
+
+        .my-cards-section {
+            background: rgba(4, 56, 76, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .my-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .card {
+            aspect-ratio: 3/4;
+            border: 3px solid #04384c;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #022838, #04384c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card.revealed {
+            opacity: 0.5;
+        }
+
+        .card.treasure {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #04384c;
+        }
+
+        .card.trap {
+            background: linear-gradient(135deg, #8B0000, #DC143C);
+            color: white;
+        }
+
+        .card.empty {
+            background: linear-gradient(135deg, #4a4a4a, #6a6a6a);
+            color: white;
+        }
+
+        .other-players-section {
+            margin-bottom: 20px;
+        }
+
+        .other-player-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 2px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .other-player-box.has-key {
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .other-player-cards {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .other-card {
+            aspect-ratio: 3/4;
+            border: 2px solid #04384c;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #011825, #04384c);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .other-card:hover:not(.revealed):not(.disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(135, 206, 235, 0.3);
+            border-color: #87CEEB;
+        }
+
+        .other-card.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .other-card.revealed {
+            cursor: not-allowed;
+        }
+
+        .key-holder-message {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #FFD700;
+            text-align: center;
+        }
+
+        .chat-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(135, 206, 235, 0.2);
+        }
+
+        .chat-message {
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .chat-message.system {
+            color: #87CEEB;
+            font-style: italic;
+        }
+
+        .victory-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .victory-content {
+            background: linear-gradient(135deg, #04384c, #022838);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid #FFD700;
+            max-width: 500px;
+        }
+
+        .victory-content h2 {
+            font-size: 2.5em;
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .connection-status.connected {
+            background: rgba(34, 139, 34, 0.8);
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(220, 20, 60, 0.8);
+            color: white;
+        }
+
+        .error-message {
+            background: rgba(220, 20, 60, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .info-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #87CEEB;
+        }
+
+        .info-box h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .room-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-info {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .my-cards-grid, .other-player-cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .player-name-display {
+                position: static;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status disconnected" id="connection-status">🔴 未接続</div>
+    <div class="player-name-display" id="player-name-display" style="display: none;">👤 <span id="my-name"></span></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🐷 豚小屋神殿の秘宝 🐷</h1>
+            <p class="subtitle">最後に笑うのは誰だ？</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <div id="lobby" class="lobby">
+            <div class="room-controls">
+                <div class="control-section">
+                    <h3>新しいルームを作成</h3>
+                    <div class="input-group">
+                        <label for="player-name-create">プレイヤー名:</label>
+                        <input type="text" id="player-name-create" placeholder="名前を入力">
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="use-password">
+                        <label for="use-password">パスワードを設定する</label>
+                    </div>
+                    <div class="input-group" id="password-group" style="display: none;">
+                        <label for="room-password">パスワード:</label>
+                        <input type="password" id="room-password" placeholder="パスワードを入力">
+                    </div>
+                    <button id="create-room" class="btn">ルームを作成</button>
+                </div>
+                
+                <div class="control-section">
+                    <h3>ルームに参加</h3>
+                    <div class="input-group">
+                        <label for="player-name-join">プレイヤー名:</label>
+                        <input type="text" id="player-name-join" placeholder="名前を入力">
+                    </div>
+                    <div class="input-group">
+                        <label for="room-id-input">ルームID:</label>
+                        <input type="text" id="room-id-input" placeholder="ルームIDを入力">
+                    </div>
+                    <div class="input-group" id="join-password-group" style="display: none;">
+                        <label for="join-password">パスワード:</label>
+                        <input type="password" id="join-password" placeholder="パスワードを入力">
+                    </div>
+                    <button id="join-room" class="btn">ルームに参加</button>
+                </div>
+            </div>
+
+            <div class="room-list">
+                <h3>🏠 開設中のルーム</h3>
+                <button id="refresh-rooms" class="btn" style="width: auto; margin-bottom: 15px;">更新</button>
+                <div id="room-list-container"></div>
+            </div>
+
+            <div class="info-box">
+                <h3>🎮 ゲームルール</h3>
+                <ul>
+                    <li>探検家チーム：財宝を7個すべて見つけることが目標</li>
+                    <li>守護者チーム：罠を2個（10人プレイ時は3個）すべて発動させるか、4ラウンド終了まで財宝を守ることが目標</li>
+                    <li>各プレイヤーには最初5枚のカードが配られます</li>
+                    <li>自分のカードの内訳は分かりますが、位置は分かりません</li>
+                    <li>鍵を持った人が、他のプレイヤーのカードを1枚選んで公開します</li>
+                    <li>選ばれた人が次に鍵を受け取ります</li>
+                    <li>各ラウンドでプレイヤー数分のカードを公開したら、カードを回収して再配布します</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="room-info" class="room-info">
+            <div class="room-id-display">
+                ルームID: <span id="room-id-display"></span>
+            </div>
+            
+            <div class="players-list">
+                <h3>参加プレイヤー (<span id="player-count">0</span>/10)</h3>
+                <div id="players-list"></div>
+            </div>
+            
+            <button id="start-game" class="btn" style="display: none;">ゲーム開始 (3人以上必要)</button>
+            <button id="leave-room" class="btn" style="margin-top: 10px;">ルームを退出</button>
+        </div>
+
+        <div id="game-board" class="game-board">
+            <div class="game-info">
+                <div class="info-card">
+                    <h3>ラウンド</h3>
+                    <div><span id="current-round">1</span> / 4</div>
+                </div>
+                <div class="info-card">
+                    <h3>財宝発見</h3>
+                    <div><span id="treasure-found">0</span> / 7</div>
+                </div>
+                <div class="info-card">
+                    <h3>罠発動</h3>
+                    <div><span id="trap-triggered">0</span> / <span id="trap-goal">2</span></div>
+                </div>
+                <div class="info-card">
+                    <h3>配布枚数</h3>
+                    <div id="cards-per-player">5</div>
+                </div>
+                <div class="info-card">
+                    <h3>このラウンド</h3>
+                    <div><span id="cards-flipped">0</span>枚公開</div>
+                </div>
+            </div>
+
+            <div id="role-reveal" class="role-card">
+                <h3>あなたの役職</h3>
+                <div id="player-role"></div>
+                <p id="role-description"></p>
+            </div>
+
+            <div id="key-holder-message" class="key-holder-message">
+                <h3>🗝️ 鍵を持っているプレイヤー: <span id="key-holder-name"></span></h3>
+                <p id="turn-message"></p>
+            </div>
+
+            <div class="my-cards-section">
+                <h3>あなたのカード</h3>
+                <p>内訳: 財宝 <span id="my-treasure">0</span>枚 / 罠 <span id="my-trap">0</span>枚 / 空き部屋 <span id="my-empty">0</span>枚</p>
+                <div id="my-cards-grid" class="my-cards-grid"></div>
+            </div>
+
+            <div class="other-players-section">
+                <h3>他のプレイヤー</h3>
+                <div id="other-players-container"></div>
+            </div>
+
+            <div id="chat-container" class="chat-container"></div>
+        </div>
+
+        <div id="victory-screen" class="victory-screen">
+            <div class="victory-content">
+                <h2 id="victory-title"></h2>
+                <p id="victory-message"></p>
+                <div id="winners-list" style="margin: 20px 0;"></div>
+                <button id="return-to-lobby" class="btn">ロビーに戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TreasureTempleGame {
+            constructor() {
+                this.socket = null;
+                this.roomId = null;
+                this.gameData = null;
+                this.isHost = false;
+                this.mySocketId = null;
+                this.myName = null;
+                
+                this.initializeSocket();
+                this.initializeEventListeners();
+            }
+
+            initializeSocket() {
+                
+                this.socket = io({
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000
+});
+
+                this.socket.on('connect', () => {
+                    this.mySocketId = this.socket.id;
+                    this.showConnectionStatus('connected');
+                    console.log('サーバーに接続しました');
+                });
+
+                this.socket.on('disconnect', () => {
+                    this.showConnectionStatus('disconnected');
+                    console.log('サーバーから切断されました');
+                });
+
+                this.socket.on('roomList', (rooms) => {
+                    this.updateRoomList(rooms);
+                });
+
+                this.socket.on('roomCreated', (data) => {
+                    this.roomId = data.roomId;
+                    this.gameData = data.gameData;
+                    this.isHost = true;
+                    this.showRoomInfo();
+                });
+
+                this.socket.on('gameUpdate', (gameData) => {
+                    this.gameData = gameData;
+                    this.updateUI();
+                });
+
+                this.socket.on('newMessage', (messages) => {
+                    this.updateMessages(messages);
+                });
+
+                this.socket.on('error', (error) => {
+                    this.showError(error.message);
+                });
+            }
+
+            initializeEventListeners() {
+                document.getElementById('use-password').addEventListener('change', (e) => {
+                    document.getElementById('password-group').style.display = 
+                        e.target.checked ? 'block' : 'none';
+                });
+
+                document.getElementById('create-room').addEventListener('click', () => this.createRoom());
+                document.getElementById('join-room').addEventListener('click', () => this.joinRoom());
+                document.getElementById('leave-room').addEventListener('click', () => this.leaveRoom());
+                document.getElementById('start-game').addEventListener('click', () => this.startGame());
+                document.getElementById('return-to-lobby').addEventListener('click', () => this.returnToLobby());
+                document.getElementById('refresh-rooms').addEventListener('click', () => {
+                    this.socket.emit('getRoomList');
+                });
+            }
+
+            showConnectionStatus(status) {
+                const statusEl = document.getElementById('connection-status');
+                if (status === 'connected') {
+                    statusEl.textContent = '🟢 接続済み';
+                    statusEl.className = 'connection-status connected';
+                } else {
+                    statusEl.textContent = '🔴 切断';
+                    statusEl.className = 'connection-status disconnected';
+                }
+            }
+
+            showError(message) {
+                const errorEl = document.getElementById('error-message');
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+                
+                setTimeout(() => {
+                    errorEl.style.display = 'none';
+                }, 5000);
+            }
+
+            updateRoomList(rooms) {
+                const container = document.getElementById('room-list-container');
+                container.innerHTML = '';
+
+                if (rooms.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #87CEEB;">現在開設中のルームはありません</p>';
+                    return;
+                }
+
+                rooms.forEach(room => {
+                    const roomDiv = document.createElement('div');
+                    roomDiv.className = 'room-item';
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'room-item-info';
+                    infoDiv.innerHTML = `
+                        <strong>ID: ${room.id}</strong>
+                        ${room.hasPassword ? '<span class="password-icon">🔒</span>' : ''}
+                        <br>
+                        ホスト: ${room.hostName} | プレイヤー: ${room.playerCount}/10
+                    `;
+                    
+                    const joinBtn = document.createElement('button');
+                    joinBtn.className = 'btn';
+                    joinBtn.textContent = '参加';
+                    joinBtn.onclick = () => {
+                        document.getElementById('room-id-input').value = room.id;
+                        if (room.hasPassword) {
+                            document.getElementById('join-password-group').style.display = 'block';
+                        }
+                    };
+                    
+                    roomDiv.appendChild(infoDiv);
+                    roomDiv.appendChild(joinBtn);
+                    container.appendChild(roomDiv);
+                });
+            }
+
+            createRoom() {
+                const nameInput = document.getElementById('player-name-create');
+                const playerName = nameInput.value.trim() || `プレイヤー${Math.floor(Math.random() * 1000)}`;
+                const hasPassword = document.getElementById('use-password').checked;
+                const password = hasPassword ? document.getElementById('room-password').value : '';
+                
+                this.myName = playerName;
+                this.showPlayerName();
+                
+                this.socket.emit('createRoom', { playerName, hasPassword, password });
+            }
+
+            joinRoom() {
+                const nameInput = document.getElementById('player-name-join');
+                const roomInput = document.getElementById('room-id-input');
+                const passwordInput = document.getElementById('join-password');
+                
+                const playerName = nameInput.value.trim() || `プレイヤー${Math.floor(Math.random() * 1000)}`;
+                const roomId = roomInput.value.trim().toUpperCase();
+                const password = passwordInput.value;
+
+                if (!roomId) {
+                    this.showError('ルームIDを入力してください');
+                    return;
+                }
+
+                this.myName = playerName;
+                this.showPlayerName();
+                this.roomId = roomId;
+                
+                this.socket.emit('joinRoom', { roomId, playerName, password });
+            }
+
+            showPlayerName() {
+                document.getElementById('player-name-display').style.display = 'block';
+                document.getElementById('my-name').textContent = this.myName;
+            }
+
+            showRoomInfo() {
+                document.getElementById('lobby').style.display = 'none';
+                document.getElementById('room-info').style.display = 'block';
+                document.getElementById('game-board').style.display = 'none';
+                document.getElementById('room-id-display').textContent = this.roomId;
+            }
+
+            updateUI() {
+                if (!this.gameData) return;
+
+                this.updatePlayersList();
+
+                if (this.gameData.gameState === 'waiting') {
+                    this.updateLobbyUI();
+                } else if (this.gameData.gameState === 'playing') {
+                    this.updateGameUI();
+                } else if (this.gameData.gameState === 'finished') {
+                    this.showVictoryScreen();
+                }
+            }
+
+            updatePlayersList() {
+                const container = document.getElementById('players-list');
+                const players = this.gameData.players || [];
+                const count = players.filter(p => p.connected).length;
+                
+                document.getElementById('player-count').textContent = count;
+                
+                container.innerHTML = '';
+                players.forEach((player) => {
+                    const div = document.createElement('div');
+                    div.className = 'player-item';
+                    if (player.id === this.gameData.host) {
+                        div.classList.add('host');
+                    }
+                    
+                    const status = player.connected ? '🟢' : '🔴';
+                    div.textContent = `${status} ${player.name}`;
+                    
+                    container.appendChild(div);
+                });
+
+                const startButton = document.getElementById('start-game');
+                if (this.isHost && count >= 3) {
+                    startButton.style.display = 'block';
+                } else {
+                    startButton.style.display = 'none';
+                }
+            }
+
+            updateLobbyUI() {
+                document.getElementById('lobby').style.display = 'none';
+                document.getElementById('room-info').style.display = 'block';
+                document.getElementById('game-board').style.display = 'none';
+            }
+
+            updateGameUI() {
+                document.getElementById('lobby').style.display = 'none';
+                document.getElementById('room-info').style.display = 'none';
+                document.getElementById('game-board').style.display = 'block';
+
+                // ゲーム情報の更新
+                document.getElementById('current-round').textContent = this.gameData.currentRound;
+                document.getElementById('treasure-found').textContent = this.gameData.treasureFound || 0;
+                document.getElementById('trap-triggered').textContent = this.gameData.trapTriggered || 0;
+                document.getElementById('trap-goal').textContent = this.gameData.trapGoal || 2;
+                document.getElementById('cards-per-player').textContent = this.gameData.cardsPerPlayer || 5;
+                document.getElementById('cards-flipped').textContent = this.gameData.cardsFlippedThisRound || 0;
+
+                // 鍵を持っているプレイヤー
+                const keyHolder = this.gameData.players.find(p => p.id === this.gameData.keyHolderId);
+                document.getElementById('key-holder-name').textContent = keyHolder?.name || '不明';
+                
+                const isMyTurn = this.gameData.keyHolderId === this.mySocketId;
+                document.getElementById('turn-message').textContent = 
+                    isMyTurn ? 'あなたのターンです！他のプレイヤーのカードを選んでください' : '待機中...';
+
+                // 役職表示
+                this.showPlayerRole();
+
+                // 自分のカード表示
+                this.renderMyCards();
+
+                // 他のプレイヤー表示
+                this.renderOtherPlayers(isMyTurn);
+            }
+
+            showPlayerRole() {
+                const myPlayer = this.gameData.players.find(p => p.id === this.mySocketId);
+                const myRole = myPlayer?.role;
+                const roleCard = document.getElementById('role-reveal');
+                const roleText = document.getElementById('player-role');
+                const roleDesc = document.getElementById('role-description');
+
+                if (myRole === 'adventurer') {
+                    roleCard.className = 'role-card role-adventurer';
+                    roleText.textContent = '⛏️ 探検家 (Adventurer)';
+                    roleDesc.textContent = '財宝を7個すべて見つけることが目標です！';
+                } else if (myRole === 'guardian') {
+                    roleCard.className = 'role-card role-guardian';
+                    roleText.textContent = '🛡️ 守護者 (Guardian)';
+                    roleDesc.textContent = '罠をすべて発動させるか、4ラウンド終了まで財宝を守ることが目標です！';
+                }
+            }
+
+            renderMyCards() {
+                const myPlayer = this.gameData.players.find(p => p.id === this.mySocketId);
+                if (!myPlayer || !myPlayer.hand) return;
+
+                const container = document.getElementById('my-cards-grid');
+                container.innerHTML = '';
+
+                let treasureCount = 0, trapCount = 0, emptyCount = 0;
+                
+                myPlayer.hand.forEach((card, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    
+                    if (card.revealed) {
+                        div.classList.add('revealed', card.type);
+                        switch (card.type) {
+                            case 'treasure':
+                                div.textContent = '💎';
+                                break;
+                            case 'trap':
+                                div.textContent = '💀';
+                                break;
+                            case 'empty':
+                                div.textContent = '📦';
+                                break;
+                        }
+                    } else {
+                        div.textContent = '?';
+                        switch (card.type) {
+                            case 'treasure':
+                                treasureCount++;
+                                break;
+                            case 'trap':
+                                trapCount++;
+                                break;
+                            case 'empty':
+                                emptyCount++;
+                                break;
+                        }
+                    }
+                    
+                    container.appendChild(div);
+                });
+
+                document.getElementById('my-treasure').textContent = treasureCount;
+                document.getElementById('my-trap').textContent = trapCount;
+                document.getElementById('my-empty').textContent = emptyCount;
+            }
+
+            renderOtherPlayers(isMyTurn) {
+                const container = document.getElementById('other-players-container');
+                container.innerHTML = '';
+
+                this.gameData.players.forEach((player) => {
+                    if (player.id === this.mySocketId) return;
+
+                    const playerBox = document.createElement('div');
+                    playerBox.className = 'other-player-box';
+                    if (player.id === this.gameData.keyHolderId) {
+                        playerBox.classList.add('has-key');
+                    }
+
+                    const header = document.createElement('h4');
+                    header.textContent = player.name;
+                    if (player.id === this.gameData.keyHolderId) {
+                        header.textContent += ' 🗝️';
+                    }
+                    playerBox.appendChild(header);
+
+                    const cardsGrid = document.createElement('div');
+                    cardsGrid.className = 'other-player-cards';
+
+                    player.hand.forEach((card, index) => {
+                        const cardDiv = document.createElement('div');
+                        cardDiv.className = 'other-card';
+                        
+                        if (card.revealed) {
+                            cardDiv.classList.add('revealed', card.type);
+                            switch (card.type) {
+                                case 'treasure':
+                                    cardDiv.textContent = '💎';
+                                    break;
+                                case 'trap':
+                                    cardDiv.textContent = '💀';
+                                    break;
+                                case 'empty':
+                                    cardDiv.textContent = '📦';
+                                    break;
+                            }
+                        } else {
+                            cardDiv.textContent = '❓';
+                            if (isMyTurn && !card.revealed) {
+                                cardDiv.addEventListener('click', () => {
+                                    this.selectCard(player.id, index);
+                                });
+                            } else {
+                                cardDiv.classList.add('disabled');
+                            }
+                        }
+                        
+                        cardsGrid.appendChild(cardDiv);
+                    });
+
+                    playerBox.appendChild(cardsGrid);
+                    container.appendChild(playerBox);
+                });
+            }
+
+            selectCard(targetPlayerId, cardIndex) {
+                this.socket.emit('selectCard', { targetPlayerId, cardIndex });
+            }
+
+            updateMessages(messages) {
+                const container = document.getElementById('chat-container');
+                const recentMessages = messages.slice(-10);
+                
+                container.innerHTML = '';
+                recentMessages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = `chat-message ${msg.type}`;
+                    div.textContent = msg.text;
+                    container.appendChild(div);
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            }
+
+            showVictoryScreen() {
+                const screen = document.getElementById('victory-screen');
+                const title = document.getElementById('victory-title');
+                const messageEl = document.getElementById('victory-message');
+                const winnersList = document.getElementById('winners-list');
+                
+                if (this.gameData.winningTeam === 'adventurer') {
+                    title.textContent = '⛏️ 探検家チームの勝利！';
+                    title.style.color = '#FFD700';
+                } else {
+                    title.textContent = '🛡️ 守護者チームの勝利！';
+                    title.style.color = '#DC143C';
+                }
+                
+                messageEl.textContent = this.gameData.victoryMessage;
+                
+                winnersList.innerHTML = '<h3>勝利チーム:</h3>';
+                this.gameData.players.forEach((player) => {
+                    if ((this.gameData.winningTeam === 'adventurer' && player.role === 'adventurer') ||
+                        (this.gameData.winningTeam === 'guardian' && player.role === 'guardian')) {
+                        const div = document.createElement('div');
+                        div.textContent = `🎉 ${player.name}`;
+                        div.style.color = '#FFD700';
+                        winnersList.appendChild(div);
+                    }
+                });
+                
+                screen.style.display = 'flex';
+            }
+
+            startGame() {
+                this.socket.emit('startGame');
+            }
+
+            leaveRoom() {
+                this.socket.emit('leaveRoom');
+                this.roomId = null;
+                this.gameData = null;
+                this.isHost = false;
+                
+                document.getElementById('lobby').style.display = 'block';
+                document.getElementById('room-info').style.display = 'none';
+                document.getElementById('game-board').style.display = 'none';
+                document.getElementById('victory-screen').style.display = 'none';
+            }
+
+            returnToLobby() {
+                this.leaveRoom();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new TreasureTempleGame();
+        });
