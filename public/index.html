@@ -4,42 +4,6 @@
 <head>
     </script>
 
-    <script>
-    // Socket.io に接続（Render上でもローカルでも動作する）
-    const socket = io();
-
-    // 接続成功したら表示を更新
-    socket.on('connect', () => {
-        console.log("✅ 接続成功:", socket.id);
-        const statusEl = document.getElementById('connection-status');
-        if (statusEl) {
-            statusEl.textContent = '🟢 接続済み';
-            statusEl.className = 'connection-status connected';
-        }
-    });
-
-    // 切断された場合
-    socket.on('disconnect', () => {
-        console.log("⚠️ 切断されました");
-        const statusEl = document.getElementById('connection-status');
-        if (statusEl) {
-            statusEl.textContent = '🔴 切断';
-            statusEl.className = 'connection-status disconnected';
-        }
-    });
-
-    // ルーム一覧を受け取ったら表示を更新
-    socket.on('roomList', (rooms) => {
-        console.log("📋 ルーム一覧:", rooms);
-        if (typeof updateRoomList === 'function') {
-            updateRoomList(rooms);
-        }
-    });
-
-    // 接続直後にルーム一覧をリクエスト
-    socket.emit('getRoomList');
-</script>
-
 </body>
 </html><meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
