@@ -1,0 +1,91 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #04384c 0%, #022838 50%, #011825 100%);
+    color: #e8f4f8;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.header h1 {
+    font-size: 2.5em;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px #04384c;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    color: #87CEEB;
+    font-style: italic;
+}
+
+.player-name-display {
+    background: rgba(255, 215, 0, 0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-weight: bold;
+    border: 2px solid #FFD700;
+    z-index: 100;
+}
+
+.lobby {
+    background: rgba(4, 56, 76, 0.3);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.room-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.control-section {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid rgba(135, 206, 235, 0.2);
+}
+
+.control-section h3 {
+    color: #87CEEB;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #87CEEB;
