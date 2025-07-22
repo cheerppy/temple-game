@@ -1116,3 +1116,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             new TreasureTempleGame();
         });
+
+        <script>
+    const socket = io(); // Socket.IOクライアントの初期化
+
+    socket.on('connect', () => {
+        console.log('🟢 サーバーに接続されました！', socket.id);
+        // 必要に応じて DOM の更新など
+    });
+
+    socket.on('disconnect', () => {
+        console.log('🔴 サーバーから切断されました。');
+    });
+
+    // サーバー側から来るイベントを受け取る
+    socket.on('roomList', (rooms) => {
+        console.log('📦 ルーム一覧:', rooms);
+        // 表示処理に渡すなど
+    });
+
+    // 他にも必要なイベントがあれば追加
+</script>
