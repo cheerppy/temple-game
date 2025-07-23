@@ -108,7 +108,10 @@ updateGameUI() {
                 icon.classList.add('used');
             }
             trapContainer.appendChild(icon);
-        }
+        }  // ← この `}` は for 文の閉じだけで、関数全体の閉じが足りない
+ } 
+    class TreasureTempleGame {
+
     class TreasureTempleGame {
     constructor() {
         this.socket = null;
