@@ -489,22 +489,212 @@ body {
     margin: 5px 0;
 }
 
-/* レスポンシブデザイン */
-@media (max-width: 768px) {
-    .room-controls {
-        grid-template-columns: 1fr;
+/* ゲーム概要セクション */
+.game-overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid rgba(135, 206, 235, 0.2);
+}
+
+.role-possibility, .card-distribution {
+    text-align: center;
+}
+
+.role-possibility h4, .card-distribution h4 {
+    color: #FFD700;
+    margin-bottom: 10px;
+}
+
+/* 進捗バー */
+.progress-bars {
+    background: rgba(4, 56, 76, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid rgba(135, 206, 235, 0.3);
+}
+
+.treasure-progress, .trap-progress {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.treasure-progress span, .trap-progress span {
+    font-weight: bold;
+    margin-right: 15px;
+    min-width: 60px;
+}
+
+.icon-row {
+    display: flex;
+    gap: 8px;
+}
+
+.progress-icon {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: all 0.5s ease;
+}
+
+.progress-icon.treasure {
+    background-image: url('images/treasure-icon-active.png');
+}
+
+.progress-icon.treasure.used {
+    background-image: url('images/treasure-icon-inactive.png');
+    opacity: 0.4;
+}
+
+.progress-icon.trap {
+    background-image: url('images/trap-icon-active.png');
+}
+
+.progress-icon.trap.used {
+    background-image: url('images/trap-icon-inactive.png');
+    opacity: 0.4;
+}
+
+/* 役職画像 */
+.role-image {
+    width: 180px;
+    height: 240px;
+    margin: 10px auto;
+    display: block;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* 鍵アイコン */
+.key-icon {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+/* カード画像のプレースホルダー */
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.card.treasure .card-image {
+    content: url('images/card-treasure-large.png');
+}
+
+.card.trap .card-image {
+    content: url('images/card-trap-large.png');
+}
+
+.card.empty .card-image {
+    content: url('images/card-empty-large.png');
+}
+
+.card:not(.revealed) .card-image {
+    content: url('images/card-back-large.png');
+}
+
+/* 他プレイヤーのカード画像 */
+.other-card-image {
+    width: 60px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.other-card.treasure .other-card-image {
+    content: url('images/card-treasure-medium.png');
+}
+
+.other-card.trap .other-card-image {
+    content: url('images/card-trap-medium.png');
+}
+
+.other-card.empty .other-card-image {
+    content: url('images/card-empty-medium.png');
+}
+
+.other-card:not(.revealed) .other-card-image {
+    content: url('images/card-back-medium.png');
+}
+
+/* チャット入力 */
+.chat-input-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.chat-input-container input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #04384c;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #e8f4f8;
+    font-size: 14px;
+}
+
+.chat-message.player {
+    color: #FFD700;
+    background: rgba(4, 56, 76, 0.3);
+    padding: 8px;
+}
+
+.chat-message.own {
+    background: rgba(255, 215, 0, 0.1);
+    text-align: right;
+}
+
+/* ラウンド開始演出 */
+.round-start-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.round-start-text {
+    text-align: center;
+    animation: roundStartAnimation 3s ease-out;
+}
+
+.round-start-text h1 {
+    font-size: 4em;
+    color: #FFD700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes roundStartAnimation {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
     }
-    
-    .game-info {
-        grid-template-columns: 1fr 1fr;
+    20% {
+        transform: scale(1.1);
+        opacity: 1;
     }
-    
-    .my-cards-grid, .other-player-cards {
-        grid-template-columns: repeat(3, 1fr);
+    80% {
+        transform: scale(1);
+        opacity: 1;
     }
-    
-    .player-name-display {
-        position: static;
-        margin-bottom: 10px;
+    100% {
+        transform: scale(1);
+        opacity: 0;
     }
 }
