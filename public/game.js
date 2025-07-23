@@ -1,115 +1,4 @@
-updateGameUI() {
-        document.getElementById('lobby').style.display = 'none';
-        document.getElementById('room-info').style.display = 'none';
-        document.getElementById('game-board').style.display = 'block';
-
-        // 役職可能性とカード内訳を表示
-        this.updateGameOverview();
-
-        // 進捗バーを更新
-        this.updateProgressBars();
-
-        // ゲーム情報の更新
-        document.getElementById('current-round').textContent = this.gameData.currentRound;
-        document.getElementById('treasure-found').textContent = this.gameData.treasureFound || 0;
-        document.getElementById('trap-triggered').textContent = this.gameData.trapTriggered || 0;
-        document.getElementById('trap-goal').textContent = this.gameData.trapGoal || 2;
-        document.getElementById('cards-per-player').textContent = this.gameData.cardsPerPlayer || 5;
-        document.getElementById('cards-flipped').textContent = this.gameData.cardsFlippedThisRound || 0;
-
-        // 鍵を持っているプレイヤー
-        const keyHolder = this.gameData.players.find(p => p.id === this.gameData.keyHolderId);
-        document.getElementById('key-holder-name').textContent = keyHolder?.name || '不明';
-        
-        const isMyTurn = this.gameData.keyHolderId === this.mySocketId;
-        document.getElementById('turn-message').textContent = 
-            isMyTurn ? 'あなたのターンです！他のプレイヤーのカードを選んでください' : '待機中...';
-
-        // 役職表示
-        this.showPlayerRole();
-
-        // 自分のカード表示
-        this.renderMyCards();
-
-        // 他のプレイヤー表示
-        this.renderOtherPlayers(isMyTurn);
-    }
-
-    updateGameOverview() {
-        const playerCount = this.gameData.players.length;
-        let roleText = '';
-        let cardText = '';
-
-        // 役職可能性
-        switch(playerCount) {
-            case 3:
-                roleText = '探検家 1-2人、守護者 1-2人';
-                cardText = '財宝5枚、罠2枚、空き部屋8枚';
-                break;
-            case 4:
-                roleText = '探検家 2-3人、守護者 1-2人';
-                cardText = '財宝6枚、罠2枚、空き部屋12枚';
-                break;
-            case 5:
-                roleText = '探検家 3人、守護者 2人';
-                cardText = '財宝7枚、罠2枚、空き部屋16枚';
-                break;
-            case 6:
-                roleText = '探検家 4人、守護者 2人';
-                cardText = '財宝8枚、罠2枚、空き部屋20枚';
-                break;
-            case 7:
-                roleText = '探検家 4-5人、守護者 2-3人';
-                cardText = '財宝7枚、罠2枚、空き部屋26枚';
-                break;
-            case 8:
-                roleText = '探検家 5-6人、守護者 2-3人';
-                cardText = '財宝8枚、罠2枚、空き部屋30枚';
-                break;
-            case 9:
-                roleText = '探検家 6人、守護者 3人';
-                cardText = '財宝9枚、罠2枚、空き部屋34枚';
-                break;
-            case 10:
-                roleText = '探検家 6-7人、守護者 3-4人';
-                cardText = '財宝10枚、罠3枚、空き部屋37枚';
-                break;
-        }
-
-        document.getElementById('role-possibility-text').textContent = roleText;
-        document.getElementById('card-distribution-text').textContent = cardText;
-    }
-
-    updateProgressBars() {
-        const treasureTotal = this.gameData.treasureGoal || 7;
-        const trapTotal = this.gameData.trapGoal || 2;
-        const treasureFound = this.gameData.treasureFound || 0;
-        const trapTriggered = this.gameData.trapTriggered || 0;
-
-        // 財宝の進捗バー
-        const treasureContainer = document.getElementById('treasure-icons');
-        treasureContainer.innerHTML = '';
-        for (let i = 0; i < treasureTotal; i++) {
-            const icon = document.createElement('div');
-            icon.className = 'progress-icon treasure';
-            if (i < treasureFound) {
-                icon.classList.add('used');
-            }
-            treasureContainer.appendChild(icon);
-        }
-
-        // 罠の進捗バー
-        const trapContainer = document.getElementById('trap-icons');
-        trapContainer.innerHTML = '';
-        for (let i = 0; i < trapTotal; i++) {
-            const icon = document.createElement('div');
-            icon.className = 'progress-icon trap';
-            if (i < trapTriggered) {
-                icon.classList.add('used');
-            }
-            trapContainer.appendChild(icon);
-        }
-    }class TreasureTempleGame {
+class TreasureTempleGame {
     constructor() {
         this.socket = null;
         this.roomId = null;
@@ -387,6 +276,82 @@ updateGameUI() {
 
         // 他のプレイヤー表示
         this.renderOtherPlayers(isMyTurn);
+    }
+
+    updateGameOverview() {
+        const playerCount = this.gameData.players.length;
+        let roleText = '';
+        let cardText = '';
+
+        // 役職可能性
+        switch (playerCount) {
+            case 3:
+                roleText = '探検家 1-2人、守護者 1-2人';
+                cardText = '財宝5枚、罠2枚、空き部屋8枚';
+                break;
+            case 4:
+                roleText = '探検家 2-3人、守護者 1-2人';
+                cardText = '財宝6枚、罠2枚、空き部屋12枚';
+                break;
+            case 5:
+                roleText = '探検家 3人、守護者 2人';
+                cardText = '財宝7枚、罠2枚、空き部屋16枚';
+                break;
+            case 6:
+                roleText = '探検家 4人、守護者 2人';
+                cardText = '財宝8枚、罠2枚、空き部屋20枚';
+                break;
+            case 7:
+                roleText = '探検家 4-5人、守護者 2-3人';
+                cardText = '財宝7枚、罠2枚、空き部屋26枚';
+                break;
+            case 8:
+                roleText = '探検家 5-6人、守護者 2-3人';
+                cardText = '財宝8枚、罠2枚、空き部屋30枚';
+                break;
+            case 9:
+                roleText = '探検家 6人、守護者 3人';
+                cardText = '財宝9枚、罠2枚、空き部屋34枚';
+                break;
+            case 10:
+                roleText = '探検家 6-7人、守護者 3-4人';
+                cardText = '財宝10枚、罠3枚、空き部屋37枚';
+                break;
+        }
+
+        document.getElementById('role-possibility-text').textContent = roleText;
+        document.getElementById('card-distribution-text').textContent = cardText;
+    }
+
+    updateProgressBars() {
+        const treasureTotal = this.gameData.treasureGoal || 7;
+        const trapTotal = this.gameData.trapGoal || 2;
+        const treasureFound = this.gameData.treasureFound || 0;
+        const trapTriggered = this.gameData.trapTriggered || 0;
+
+        // 財宝の進捗バー
+        const treasureContainer = document.getElementById('treasure-icons');
+        treasureContainer.innerHTML = '';
+        for (let i = 0; i < treasureTotal; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'progress-icon treasure';
+            if (i < treasureFound) {
+                icon.classList.add('used');
+            }
+            treasureContainer.appendChild(icon);
+        }
+
+        // 罠の進捗バー
+        const trapContainer = document.getElementById('trap-icons');
+        trapContainer.innerHTML = '';
+        for (let i = 0; i < trapTotal; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'progress-icon trap';
+            if (i < trapTriggered) {
+                icon.classList.add('used');
+            }
+            trapContainer.appendChild(icon);
+        }
     }
 
     showPlayerRole() {
