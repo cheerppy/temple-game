@@ -107,14 +107,9 @@ updateGameUI() {
             if (i < trapTriggered) {
                 icon.classList.add('used');
             }
-               trapContainer.appendChild(icon);
-        }  // for の終わり
-    }  // ✅ ← 追加！関数の終わり
-
- } 
-    class TreasureTempleGame {
-
-    class TreasureTempleGame {
+            trapContainer.appendChild(icon);
+        }
+    }class TreasureTempleGame {
     constructor() {
         this.socket = null;
         this.roomId = null;
