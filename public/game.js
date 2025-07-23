@@ -86,6 +86,9 @@ class TreasureTempleGame {
         document.getElementById('refresh-rooms').addEventListener('click', () => {
             this.socket.emit('getRoomList');
         });
+        document.getElementById('refresh-game-data')?.addEventListener('click', () => {
+            this.socket.emit('getRoomData');
+        });
 
         // チャット機能
         document.getElementById('send-chat').addEventListener('click', () => this.sendChat());
@@ -276,6 +279,9 @@ class TreasureTempleGame {
 
         // 他のプレイヤー表示
         this.renderOtherPlayers(isMyTurn);
+
+        this.updateGameOverview();
+        this.updateProgressBars();
     }
 
     updateGameOverview() {
@@ -514,12 +520,21 @@ class TreasureTempleGame {
     }
 
     sendChat() {
+        const messages = game.gameData.messages || [];
+
         const input = document.getElementById('chat-input');
         const message = input.value.trim();
         
         if (!message || !this.roomId) return;
+
+        // messages.push({
+        //     type: 'chat',
+        //     text: `${this.myName}: ${message}`,
+        //     timestamp: Date.now()
+        // });
         
-        this.socket.emit('sendChat', message);
+        this.socket.emit('sendChat', { roomId: this.roomId, playerName: this.myName, message});
+        // io.to(this.roomId).emit('newMessage', messages);
         input.value = '';
     }
 
