@@ -316,6 +316,19 @@ io.on('connection', (socket) => {
         console.log(`${playerName} がルーム ${roomId} に参加`);
     });
 
+    socket.on('sendChat', (data) => {
+        const { roomId, playerName, message } = data;
+        const game = GameManager.get(roomId);
+
+        game.messages.push({
+            type: 'chat',
+            text: `${playerName}: ${message}`,
+            timestamp: Date.now()
+        });
+        io.to(roomId).emit('newMessage', game.messages);
+
+    });
+
     socket.on('startGame', () => {
         const roomId = socket.roomId;
         const game = GameManager.get(roomId);
