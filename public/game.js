@@ -55,7 +55,61 @@ updateGameUI() {
                 cardText = '財宝7枚、罠2枚、空き部屋16枚';
                 break;
             case 6:
-                roleclass TreasureTempleGame {
+                roleText = '探検家 4人、守護者 2人';
+                cardText = '財宝8枚、罠2枚、空き部屋20枚';
+                break;
+            case 7:
+                roleText = '探検家 4-5人、守護者 2-3人';
+                cardText = '財宝7枚、罠2枚、空き部屋26枚';
+                break;
+            case 8:
+                roleText = '探検家 5-6人、守護者 2-3人';
+                cardText = '財宝8枚、罠2枚、空き部屋30枚';
+                break;
+            case 9:
+                roleText = '探検家 6人、守護者 3人';
+                cardText = '財宝9枚、罠2枚、空き部屋34枚';
+                break;
+            case 10:
+                roleText = '探検家 6-7人、守護者 3-4人';
+                cardText = '財宝10枚、罠3枚、空き部屋37枚';
+                break;
+        }
+
+        document.getElementById('role-possibility-text').textContent = roleText;
+        document.getElementById('card-distribution-text').textContent = cardText;
+    }
+
+    updateProgressBars() {
+        const treasureTotal = this.gameData.treasureGoal || 7;
+        const trapTotal = this.gameData.trapGoal || 2;
+        const treasureFound = this.gameData.treasureFound || 0;
+        const trapTriggered = this.gameData.trapTriggered || 0;
+
+        // 財宝の進捗バー
+        const treasureContainer = document.getElementById('treasure-icons');
+        treasureContainer.innerHTML = '';
+        for (let i = 0; i < treasureTotal; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'progress-icon treasure';
+            if (i < treasureFound) {
+                icon.classList.add('used');
+            }
+            treasureContainer.appendChild(icon);
+        }
+
+        // 罠の進捗バー
+        const trapContainer = document.getElementById('trap-icons');
+        trapContainer.innerHTML = '';
+        for (let i = 0; i < trapTotal; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'progress-icon trap';
+            if (i < trapTriggered) {
+                icon.classList.add('used');
+            }
+            trapContainer.appendChild(icon);
+        }
+    }class TreasureTempleGame {
     constructor() {
         this.socket = null;
         this.roomId = null;
@@ -341,15 +395,20 @@ updateGameUI() {
         const roleCard = document.getElementById('role-reveal');
         const roleText = document.getElementById('player-role');
         const roleDesc = document.getElementById('role-description');
+        const roleImage = document.getElementById('role-image');
 
         if (myRole === 'adventurer') {
             roleCard.className = 'role-card role-adventurer';
             roleText.textContent = '⛏️ 探検家 (Adventurer)';
             roleDesc.textContent = '財宝を7個すべて見つけることが目標です！';
+            roleImage.src = 'images/role-adventurer.png';
+            roleImage.alt = '探検家';
         } else if (myRole === 'guardian') {
             roleCard.className = 'role-card role-guardian';
             roleText.textContent = '🛡️ 守護者 (Guardian)';
             roleDesc.textContent = '罠をすべて発動させるか、4ラウンド終了まで財宝を守ることが目標です！';
+            roleImage.src = 'images/role-guardian.png';
+            roleImage.alt = '守護者';
         }
     }
 
@@ -467,17 +526,48 @@ updateGameUI() {
 
     updateMessages(messages) {
         const container = document.getElementById('chat-container');
-        const recentMessages = messages.slice(-10);
+        const recentMessages = messages.slice(-20);
         
         container.innerHTML = '';
         recentMessages.forEach(msg => {
             const div = document.createElement('div');
             div.className = `chat-message ${msg.type}`;
-            div.textContent = msg.text;
+            
+            if (msg.type === 'player') {
+                div.textContent = `${msg.playerName}: ${msg.text}`;
+                if (msg.playerId === this.mySocketId) {
+                    div.classList.add('own');
+                }
+            } else {
+                div.textContent = msg.text;
+            }
+            
             container.appendChild(div);
         });
         
         container.scrollTop = container.scrollHeight;
+    }
+
+    sendChat() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        
+        if (!message || !this.roomId) return;
+        
+        this.socket.emit('sendChat', message);
+        input.value = '';
+    }
+
+    showRoundStart(roundNumber) {
+        const overlay = document.getElementById('round-start-overlay');
+        const message = document.getElementById('round-start-message');
+        
+        message.textContent = `ラウンド ${roundNumber} スタート！`;
+        overlay.style.display = 'flex';
+        
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 3000);
     }
 
     showVictoryScreen() {
