@@ -109,7 +109,7 @@ updateGameUI() {
             }
             trapContainer.appendChild(icon);
         }
-    }class TreasureTempleGame {
+    class TreasureTempleGame {
     constructor() {
         this.socket = null;
         this.roomId = null;
