@@ -130,25 +130,25 @@ updateGameUI() {
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
             timeout: 10000
-        });
+        }
 
         // 接続イベント
         this.socket.on('connect', () => {
             this.mySocketId = this.socket.id;
             this.showConnectionStatus('connected');
             console.log('サーバーに接続しました');
-        });
+        }
 
         // 切断イベント
         this.socket.on('disconnect', () => {
             this.showConnectionStatus('disconnected');
             console.log('サーバーから切断されました');
-        });
+        }
 
         // ルーム一覧受信
         this.socket.on('roomList', (rooms) => {
             this.updateRoomList(rooms);
-        });
+        }
 
         // ルーム作成完了
         this.socket.on('roomCreated', (data) => {
@@ -156,29 +156,29 @@ updateGameUI() {
             this.gameData = data.gameData;
             this.isHost = true;
             this.showRoomInfo();
-        });
+        }
 
         // ゲーム状態更新
         this.socket.on('gameUpdate', (gameData) => {
             this.gameData = gameData;
             this.updateUI();
-        });
+        }
 
         // メッセージ受信
         this.socket.on('newMessage', (messages) => {
             this.updateMessages(messages);
-        });
+        }
 
         // エラー処理
         this.socket.on('error', (error) => {
             this.showError(error.message);
-        });
+        }
 
         // 接続エラー処理
         this.socket.on('connect_error', (error) => {
             console.error('接続エラー:', error);
             this.showError('サーバーに接続できません');
-        });
+        }
     }
 
     initializeEventListeners() {
