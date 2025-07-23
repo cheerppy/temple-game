@@ -107,8 +107,10 @@ updateGameUI() {
             if (i < trapTriggered) {
                 icon.classList.add('used');
             }
-            trapContainer.appendChild(icon);
-        }  // ← この `}` は for 文の閉じだけで、関数全体の閉じが足りない
+               trapContainer.appendChild(icon);
+        }  // for の終わり
+    }  // ✅ ← 追加！関数の終わり
+
  } 
     class TreasureTempleGame {
 
