@@ -98,6 +98,30 @@
 
         <!-- ゲーム画面 -->
         <div id="game-board" class="game-board">
+            <!-- 役職可能性とカード内訳 -->
+            <div class="game-overview">
+                <div class="role-possibility">
+                    <h4>このゲームの役職構成</h4>
+                    <p id="role-possibility-text"></p>
+                </div>
+                <div class="card-distribution">
+                    <h4>カード内訳</h4>
+                    <p id="card-distribution-text"></p>
+                </div>
+            </div>
+
+            <!-- 進捗バー -->
+            <div class="progress-bars">
+                <div class="treasure-progress">
+                    <span>財宝：</span>
+                    <div id="treasure-icons" class="icon-row"></div>
+                </div>
+                <div class="trap-progress">
+                    <span>罠：</span>
+                    <div id="trap-icons" class="icon-row"></div>
+                </div>
+            </div>
+
             <div class="game-info">
                 <div class="info-card">
                     <h3>ラウンド</h3>
@@ -123,12 +147,13 @@
 
             <div id="role-reveal" class="role-card">
                 <h3>あなたの役職</h3>
+                <img id="role-image" class="role-image" src="" alt="">
                 <div id="player-role"></div>
                 <p id="role-description"></p>
             </div>
 
             <div id="key-holder-message" class="key-holder-message">
-                <h3>🗝️ 鍵を持っているプレイヤー: <span id="key-holder-name"></span></h3>
+                <h3><img src="images/key-icon.png" class="key-icon" alt="鍵"> 鍵を持っているプレイヤー: <span id="key-holder-name"></span></h3>
                 <p id="turn-message"></p>
             </div>
 
@@ -144,6 +169,17 @@
             </div>
 
             <div id="chat-container" class="chat-container"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="メッセージを入力..." maxlength="100">
+                <button id="send-chat" class="btn" style="width: auto;">送信</button>
+            </div>
+        </div>
+
+        <!-- ラウンド開始演出 -->
+        <div id="round-start-overlay" class="round-start-overlay">
+            <div class="round-start-text">
+                <h1 id="round-start-message">ラウンド 1 スタート！</h1>
+            </div>
         </div>
 
         <!-- 勝利画面 -->
