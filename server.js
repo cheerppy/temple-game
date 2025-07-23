@@ -284,13 +284,18 @@ io.on('connection', (socket) => {
             return;
         }
 
-        game.players.push({
-            id: socket.id,
-            name: playerName,
-            role: null,
-            hand: [],
-            connected: true
-        });
+        const player = game.players.find(p => p.name === playerName);
+        if(player){
+            player.id = socket.id; // 既存のプレイヤーのIDを更新
+        } else {
+            game.players.push({
+                id: socket.id,
+                name: playerName,
+                role: null,
+                hand: [],
+                connected: true
+            });
+        }
 
         socket.join(roomId);
         socket.roomId = roomId;
@@ -309,6 +314,19 @@ io.on('connection', (socket) => {
         io.emit('roomList', GameManager.getPublicRoomList());
         
         console.log(`${playerName} がルーム ${roomId} に参加`);
+    });
+
+    socket.on('sendChat', (data) => {
+        const { roomId, playerName, message } = data;
+        const game = GameManager.get(roomId);
+
+        game.messages.push({
+            type: 'chat',
+            text: `${playerName}: ${message}`,
+            timestamp: Date.now()
+        });
+        io.to(roomId).emit('newMessage', game.messages);
+
     });
 
     socket.on('startGame', () => {
