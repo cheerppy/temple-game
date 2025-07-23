@@ -284,13 +284,18 @@ io.on('connection', (socket) => {
             return;
         }
 
-        game.players.push({
-            id: socket.id,
-            name: playerName,
-            role: null,
-            hand: [],
-            connected: true
-        });
+        const player = game.players.find(p => p.name === playerName);
+        if(player){
+            player.id = socket.id; // 既存のプレイヤーのIDを更新
+        } else {
+            game.players.push({
+                id: socket.id,
+                name: playerName,
+                role: null,
+                hand: [],
+                connected: true
+            });
+        }
 
         socket.join(roomId);
         socket.roomId = roomId;
