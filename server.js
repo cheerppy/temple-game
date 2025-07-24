@@ -62,7 +62,6 @@ class GameManager {
 
     static getPublicRoomList() {
         return Object.values(this.games)
-            .filter(game => game.gameState === 'waiting')
             .map(game => ({
                 id: game.id,
                 hostName: game.players.find(p => p.id === game.host)?.name || 'Unknown',
@@ -279,12 +278,12 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (game.gameState !== 'waiting') {
+        const player = game.players.find(p => p.name === playerName);
+        if (game.gameState !== 'waiting' && !player) {
             socket.emit('error', { message: 'ゲームが既に開始されています' });
             return;
         }
 
-        const player = game.players.find(p => p.name === playerName);
         if(player){
             player.id = socket.id; // 既存のプレイヤーのIDを更新
         } else {
