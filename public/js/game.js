@@ -7,20 +7,16 @@ class TreasureTempleGame {
         this.mySocketId = null;
         this.myName = null;
         
-        // Socket通信管理クラスを初期化
         this.socketClient = new SocketClient(this);
-        
         this.initializeEventListeners();
     }
 
     initializeEventListeners() {
-        // パスワード使用チェックボックス
         document.getElementById('use-password').addEventListener('change', (e) => {
             document.getElementById('password-group').style.display = 
                 e.target.checked ? 'block' : 'none';
         });
 
-        // 各種ボタンのイベント
         document.getElementById('create-room').addEventListener('click', () => this.createRoom());
         document.getElementById('join-room').addEventListener('click', () => this.joinRoom());
         document.getElementById('leave-room').addEventListener('click', () => this.leaveRoom());
@@ -30,7 +26,6 @@ class TreasureTempleGame {
             this.socketClient.getRoomList();
         });
 
-        // チャット機能
         document.getElementById('send-chat').addEventListener('click', () => this.sendChat());
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendChat();
@@ -104,12 +99,10 @@ class TreasureTempleGame {
     updateGameUI() {
         UIManager.showScreen('game-board');
 
-        // ゲーム概要とプログレスバーを更新
         UIManager.updateGameOverview(this.gameData.players.length);
         UIManager.updateProgressBars(this.gameData);
         UIManager.updateGameInfo(this.gameData);
 
-        // 鍵を持っているプレイヤー
         const keyHolder = this.gameData.players.find(p => p.id === this.gameData.keyHolderId);
         document.getElementById('key-holder-name').textContent = keyHolder?.name || '不明';
         
@@ -117,13 +110,8 @@ class TreasureTempleGame {
         document.getElementById('turn-message').textContent = 
             isMyTurn ? 'あなたのターンです！他のプレイヤーのカードを選んでください' : '待機中...';
 
-        // 役職表示
         this.showPlayerRole();
-
-        // 自分のカード表示
         this.renderMyCards();
-
-        // 他のプレイヤー表示
         this.renderOtherPlayers(isMyTurn);
     }
 
@@ -292,10 +280,7 @@ class TreasureTempleGame {
     }
 }
 
-// ゲーム開始
 document.addEventListener('DOMContentLoaded', () => {
     const game = new TreasureTempleGame();
-    
-    // デバッグ用
     window.game = game;
 });

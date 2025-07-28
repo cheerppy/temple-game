@@ -64,13 +64,11 @@ class UIManager {
     }
 
     static showScreen(screenName) {
-        // すべての画面を非表示
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('room-info').style.display = 'none';
         document.getElementById('game-board').style.display = 'none';
         document.getElementById('victory-screen').style.display = 'none';
         
-        // 指定された画面を表示
         if (screenName) {
             const screen = document.getElementById(screenName);
             if (screen) screen.style.display = 'block';
@@ -102,7 +100,6 @@ class UIManager {
         let roleText = '';
         let cardText = '';
 
-        // 役職可能性
         switch (playerCount) {
             case 3:
                 roleText = '探検家 1-2人、守護者 1-2人';
@@ -148,7 +145,6 @@ class UIManager {
         const treasureFound = gameData.treasureFound || 0;
         const trapTriggered = gameData.trapTriggered || 0;
 
-        // 財宝の進捗バー
         const treasureContainer = document.getElementById('treasure-icons');
         treasureContainer.innerHTML = '';
         for (let i = 0; i < treasureTotal; i++) {
@@ -160,7 +156,6 @@ class UIManager {
             treasureContainer.appendChild(icon);
         }
 
-        // 罠の進捗バー
         const trapContainer = document.getElementById('trap-icons');
         trapContainer.innerHTML = '';
         for (let i = 0; i < trapTotal; i++) {
@@ -246,5 +241,4 @@ class UIManager {
     }
 }
 
-// グローバルに公開
 window.UIManager = UIManager;
