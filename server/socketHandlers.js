@@ -11,7 +11,6 @@ function setupSocketHandlers(io) {
     io.on('connection', (socket) => {
         console.log('新しい接続:', socket.id);
 
-        // ルーム一覧を送信
         socket.emit('roomList', GameManager.getPublicRoomList());
 
         socket.on('getRoomList', () => {
@@ -27,8 +26,6 @@ function setupSocketHandlers(io) {
             socket.roomId = roomId;
             
             socket.emit('roomCreated', { roomId, gameData: game });
-            
-            // 全員にルーム一覧を更新
             io.emit('roomList', GameManager.getPublicRoomList());
             
             console.log(`ルーム ${roomId} が作成されました`);
@@ -48,7 +45,6 @@ function setupSocketHandlers(io) {
                 return;
             }
 
-            // 再接続または新規参加をチェック
             const existingPlayer = game.players.find(p => p.name === playerName);
             
             if (!existingPlayer && game.players.length >= 10) {
@@ -61,7 +57,6 @@ function setupSocketHandlers(io) {
                 return;
             }
 
-            // プレイヤーを追加または更新
             GameManager.addPlayer(roomId, socket.id, playerName);
             
             socket.join(roomId);
@@ -76,8 +71,6 @@ function setupSocketHandlers(io) {
             });
             
             io.to(roomId).emit('newMessage', game.messages);
-            
-            // 全員にルーム一覧を更新
             io.emit('roomList', GameManager.getPublicRoomList());
             
             console.log(`${playerName} がルーム ${roomId} に参加`);
@@ -119,36 +112,30 @@ function setupSocketHandlers(io) {
 
             const playerCount = game.players.length;
             
-            // 役職を割り当て
             const roles = assignRoles(playerCount);
             game.players.forEach((player, index) => {
                 player.role = roles[index];
             });
 
-            // カードを生成
             const { cards, treasureCount, trapCount } = generateAllCards(playerCount);
             game.allCards = cards;
             game.totalTreasures = treasureCount;
             game.totalTraps = trapCount;
             
-            // 勝利条件の設定
             const { treasureGoal, trapGoal } = calculateVictoryGoal(playerCount);
             game.treasureGoal = treasureGoal;
             game.trapGoal = trapGoal;
 
-            // 最初のラウンドのカードを配布
             const { playerHands, remainingCards } = distributeCards(cards, playerCount, 5);
             game.playerHands = playerHands;
             game.remainingCards = remainingCards;
             
-            // 各プレイヤーにカードを配る
             game.players.forEach((player, index) => {
                 player.hand = playerHands[index];
             });
 
             game.gameState = 'playing';
             
-            // ランダムなプレイヤーが最初の鍵を持つ
             const randomIndex = Math.floor(Math.random() * game.players.length);
             game.keyHolderId = game.players[randomIndex].id;
             game.currentRound = 1;
@@ -163,8 +150,6 @@ function setupSocketHandlers(io) {
             io.to(roomId).emit('gameUpdate', game);
             io.to(roomId).emit('newMessage', game.messages);
             io.to(roomId).emit('roundStart', 1);
-            
-            // 全員にルーム一覧を更新
             io.emit('roomList', GameManager.getPublicRoomList());
             
             console.log(`ルーム ${roomId} でゲーム開始`);
@@ -194,7 +179,6 @@ function setupSocketHandlers(io) {
                 return;
             }
 
-            // カードを公開
             const revealedCard = targetPlayer.hand[cardIndex];
             revealedCard.revealed = true;
 
@@ -219,11 +203,9 @@ function setupSocketHandlers(io) {
                 timestamp: Date.now()
             });
 
-            // 鍵を渡す
             game.keyHolderId = targetPlayerId;
             game.cardsFlippedThisRound++;
 
-            // 勝利条件をチェック
             if (game.treasureFound >= game.treasureGoal) {
                 game.gameState = 'finished';
                 game.winningTeam = 'adventurer';
@@ -233,7 +215,6 @@ function setupSocketHandlers(io) {
                 game.winningTeam = 'guardian';
                 game.victoryMessage = `${game.trapGoal}個の罠が発動しました！守護者チームの勝利です！`;
             } else if (game.cardsFlippedThisRound >= game.players.length) {
-                // ラウンド終了処理
                 endRound(game, roomId, io);
             }
 
@@ -295,7 +276,6 @@ function endRound(game, roomId, io) {
     game.currentRound++;
     game.cardsFlippedThisRound = 0;
     
-    // 3秒後の処理を通知
     game.messages.push({
         type: 'system',
         text: `ラウンド ${game.currentRound - 1} 終了！3秒後に次のラウンドが始まります...`,
@@ -305,21 +285,16 @@ function endRound(game, roomId, io) {
     io.to(roomId).emit('gameUpdate', game);
     io.to(roomId).emit('newMessage', game.messages);
     
-    // 3秒待機
     setTimeout(() => {
         if (game.currentRound > game.maxRounds) {
-            // ゲーム終了
             game.gameState = 'finished';
             game.winningTeam = 'guardian';
             game.victoryMessage = '4ラウンドが終了しました！財宝を守り切った守護者チームの勝利です！';
         } else {
-            // 次のラウンドの準備
             game.cardsPerPlayer = Math.max(1, 6 - game.currentRound);
             
-            // カードを回収して再配布
             const allRemainingCards = [];
             
-            // プレイヤーの手札から未公開のカードを回収
             game.players.forEach(player => {
                 player.hand.forEach(card => {
                     if (!card.revealed) {
@@ -328,7 +303,6 @@ function endRound(game, roomId, io) {
                 });
             });
             
-            // 残りのカードと合わせる
             allRemainingCards.push(...game.remainingCards);
             
             if (allRemainingCards.length >= game.players.length * game.cardsPerPlayer) {
@@ -351,10 +325,8 @@ function endRound(game, roomId, io) {
                     timestamp: Date.now()
                 });
                 
-                // ラウンド開始通知
                 io.to(roomId).emit('roundStart', game.currentRound);
             } else {
-                // カードが足りない場合もゲーム終了
                 game.gameState = 'finished';
                 game.winningTeam = 'guardian';
                 game.victoryMessage = 'カードが尽きました！守護者チームの勝利です！';
@@ -364,4 +336,4 @@ function endRound(game, roomId, io) {
     }, 3000);
 }
 
-module.exports = { setupSocketHandlers }
+module.exports = { setupSocketHandlers };

@@ -7,7 +7,6 @@ function assignRoles(playerCount) {
     
     switch(playerCount) {
         case 3:
-            // ランダムでパターンを選択
             if (Math.random() < 0.5) {
                 adventurerCount = 1;
                 guardianCount = 2;
@@ -18,7 +17,6 @@ function assignRoles(playerCount) {
             extraCard = true;
             break;
         case 4:
-            // ランダムでパターンを選択
             if (Math.random() < 0.5) {
                 adventurerCount = 2;
                 guardianCount = 2;
@@ -39,7 +37,6 @@ function assignRoles(playerCount) {
             extraCard = false;
             break;
         case 7:
-            // ランダムでパターンを選択
             if (Math.random() < 0.5) {
                 adventurerCount = 4;
                 guardianCount = 3;
@@ -50,7 +47,6 @@ function assignRoles(playerCount) {
             extraCard = true;
             break;
         case 8:
-            // ランダムでパターンを選択
             if (Math.random() < 0.5) {
                 adventurerCount = 5;
                 guardianCount = 3;
@@ -66,7 +62,6 @@ function assignRoles(playerCount) {
             extraCard = false;
             break;
         case 10:
-            // ランダムでパターンを選択
             if (Math.random() < 0.5) {
                 adventurerCount = 6;
                 guardianCount = 4;
@@ -92,7 +87,6 @@ function assignRoles(playerCount) {
         roles.push('guardian');
     }
     
-    // 余りカードがある場合、最初から総数を設定
     if (!extraCard && roles.length < totalCards) {
         roles.push(Math.random() < 0.6 ? 'adventurer' : 'guardian');
     }
@@ -191,7 +185,6 @@ function distributeCards(allCards, playerCount, cardsPerPlayer) {
 }
 
 function calculateVictoryGoal(playerCount) {
-    // 勝利条件の計算
     const treasureGoal = playerCount <= 5 ? 7 : 8;
     const trapGoal = playerCount === 10 ? 3 : 2;
     return { treasureGoal, trapGoal };

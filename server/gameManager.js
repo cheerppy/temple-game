@@ -61,13 +61,11 @@ class GameManager {
 
         const existingPlayer = game.players.find(p => p.name === playerName);
         if (existingPlayer) {
-            // 既存プレイヤーの再接続
             existingPlayer.id = playerId;
             existingPlayer.connected = true;
             return existingPlayer;
         }
 
-        // 新規プレイヤー
         const newPlayer = {
             id: playerId,
             name: playerName,
@@ -88,10 +86,9 @@ class GameManager {
             player.connected = false;
         }
 
-        // 全員が切断したらルームを削除
         if (game.players.every(p => !p.connected)) {
             delete this.games[roomId];
-            return true; // ルームが削除された
+            return true;
         }
         return false;
     }
