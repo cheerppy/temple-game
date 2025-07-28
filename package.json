@@ -1,7 +1,7 @@
 {
-  "name": "temple-of-terror-online",
+  "name": "treasure-temple-game",
   "version": "1.0.0",
-  "description": "恐怖の神殿 オンライン対戦版",
+  "description": "豚小屋神殿の秘宝 - マルチプレイヤー推理ゲーム",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
