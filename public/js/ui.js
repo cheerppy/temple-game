@@ -10,14 +10,30 @@ class UIManager {
         }
     }
 
-    static showError(message) {
+    static showError(message, type = 'error') {
         const errorEl = document.getElementById('error-message');
         errorEl.textContent = message;
+        
+        // エラータイプに応じてスタイルを変更
+        if (type === 'success') {
+            errorEl.style.background = 'rgba(34, 139, 34, 0.9)';
+            errorEl.style.borderColor = '#228B22';
+        } else if (type === 'warning') {
+            errorEl.style.background = 'rgba(255, 165, 0, 0.9)';
+            errorEl.style.borderColor = '#FFA500';
+        } else {
+            errorEl.style.background = 'rgba(220, 20, 60, 0.9)';
+            errorEl.style.borderColor = '#DC143C';
+        }
+        
         errorEl.style.display = 'block';
+        
+        // 成功メッセージは短めに表示
+        const displayTime = type === 'success' ? 3000 : 5000;
         
         setTimeout(() => {
             errorEl.style.display = 'none';
-        }, 5000);
+        }, displayTime);
     }
 
     static showPlayerName(name) {
@@ -48,7 +64,7 @@ class UIManager {
             `;
             
             const joinBtn = document.createElement('button');
-            joinBtn.className = 'btn';
+            joinBtn.className = 'btn btn-small';
             joinBtn.textContent = '参加';
             joinBtn.onclick = () => {
                 document.getElementById('room-id-input').value = room.id;
@@ -92,7 +108,14 @@ class UIManager {
             }
             
             const status = player.connected ? '🟢' : '🔴';
-            div.textContent = `${status} ${player.name}`;
+            const disconnectedText = player.connected ? '' : ' (切断中)';
+            div.textContent = `${status} ${player.name}${disconnectedText}`;
+            
+            // 切断中のプレイヤーは薄く表示
+            if (!player.connected) {
+                div.style.opacity = '0.6';
+                div.style.fontStyle = 'italic';
+            }
             
             container.appendChild(div);
         });
@@ -156,6 +179,10 @@ class UIManager {
             if (i < treasureFound) {
                 icon.classList.add('used');
             }
+            
+            // 画像読み込みエラー時のフォールバック処理
+            this.setupIconFallback(icon, 'treasure', i < treasureFound);
+            
             treasureContainer.appendChild(icon);
         }
 
@@ -168,8 +195,25 @@ class UIManager {
             if (i < trapTriggered) {
                 icon.classList.add('used');
             }
+            
+            // 画像読み込みエラー時のフォールバック処理
+            this.setupIconFallback(icon, 'trap', i < trapTriggered);
+            
             trapContainer.appendChild(icon);
         }
+    }
+
+    // アイコンの画像読み込みエラー時のフォールバック処理
+    static setupIconFallback(icon, type, isUsed) {
+        // 画像が読み込まれない場合のタイマー
+        setTimeout(() => {
+            const hasBackground = window.getComputedStyle(icon).backgroundImage !== 'none';
+            if (!hasBackground) {
+                // 画像が読み込まれていない場合は絵文字表示に切り替え
+                icon.classList.add('emoji-only');
+                console.log(`${type} icon fallback to emoji`);
+            }
+        }, 1000);
     }
 
     static updateGameInfo(gameData) {
@@ -179,6 +223,12 @@ class UIManager {
         document.getElementById('trap-goal').textContent = gameData.trapGoal || 2;
         document.getElementById('cards-per-player').textContent = gameData.cardsPerPlayer || 5;
         document.getElementById('cards-flipped').textContent = gameData.cardsFlippedThisRound || 0;
+        
+        // 財宝目標も更新
+        const treasureGoalEl = document.getElementById('treasure-goal');
+        if (treasureGoalEl) {
+            treasureGoalEl.textContent = gameData.treasureGoal || 7;
+        }
     }
 
     static showRoundStart(roundNumber) {
@@ -242,6 +292,39 @@ class UIManager {
         });
         
         container.scrollTop = container.scrollHeight;
+    }
+
+    // 手動再接続ボタンを表示する関数
+    static showReconnectButton() {
+        const existingButton = document.getElementById('manual-reconnect-btn');
+        if (existingButton) return;
+
+        const button = document.createElement('button');
+        button.id = 'manual-reconnect-btn';
+        button.className = 'btn btn-small';
+        button.textContent = '再接続';
+        button.style.position = 'fixed';
+        button.style.bottom = '20px';
+        button.style.right = '20px';
+        button.style.zIndex = '1000';
+        button.style.width = 'auto';
+        
+        button.onclick = () => {
+            if (window.game && window.game.socketClient) {
+                window.game.socketClient.manualReconnect();
+                button.remove();
+            }
+        };
+        
+        document.body.appendChild(button);
+    }
+
+    // 再接続ボタンを非表示にする関数
+    static hideReconnectButton() {
+        const button = document.getElementById('manual-reconnect-btn');
+        if (button) {
+            button.remove();
+        }
     }
 }
 
