@@ -23,16 +23,21 @@ app.get('/debug', (req, res) => {
         const publicFiles = fs.readdirSync(publicPath);
         const cssPath = path.join(publicPath, 'css');
         const jsPath = path.join(publicPath, 'js');
+        const imagesPath = path.join(publicPath, 'images');
         
         const cssFiles = fs.existsSync(cssPath) ? fs.readdirSync(cssPath) : ['CSS folder not found'];
         const jsFiles = fs.existsSync(jsPath) ? fs.readdirSync(jsPath) : ['JS folder not found'];
+        const imageFiles = fs.existsSync(imagesPath) ? fs.readdirSync(imagesPath) : ['Images folder not found'];
         
         res.json({
             publicPath,
             publicFiles,
             cssFiles,
             jsFiles,
-            workingDirectory: process.cwd()
+            imageFiles,
+            workingDirectory: process.cwd(),
+            nodeVersion: process.version,
+            platform: process.platform
         });
     } catch (error) {
         res.json({ error: error.message });
