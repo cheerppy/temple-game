@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豚小屋神殿の秘宝 - 最後に笑うのは誰だ？</title>
+    <title>豚小屋に入らずんば子豚を得ず - 恐怖の豚男</title>
     
     <!-- Socket.io CDN -->
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
@@ -17,8 +17,8 @@
     
     <div class="container">
         <div class="header">
-            <h1>🐷 豚小屋神殿の秘宝 🐷</h1>
-            <p class="subtitle">最後に笑うのは誰だ？</p>
+            <h1>🐷 豚小屋に入らずんば子豚を得ず 🐷</h1>
+            <p class="subtitle">恐怖の豚男</p>
         </div>
 
         <div id="error-message" class="error-message"></div>
@@ -63,21 +63,24 @@
 
             <div class="room-list">
                 <h3>🏠 開設中のルーム</h3>
-                <button id="refresh-rooms" class="btn" style="width: auto; margin-bottom: 15px;">更新</button>
+                <button id="refresh-rooms" class="btn btn-small">更新</button>
                 <div id="room-list-container"></div>
             </div>
 
             <div class="info-box">
                 <h3>🎮 ゲームルール</h3>
-                <ul>
-                    <li>探検家チーム：財宝を7個すべて見つけることが目標</li>
-                    <li>守護者チーム：罠を2個（10人プレイ時は3個）すべて発動させるか、4ラウンド終了まで財宝を守ることが目標</li>
-                    <li>各プレイヤーには最初5枚のカードが配られます</li>
-                    <li>自分のカードの内訳は分かりますが、位置は分かりません</li>
-                    <li>鍵を持った人が、他のプレイヤーのカードを1枚選んで公開します</li>
-                    <li>選ばれた人が次に鍵を受け取ります</li>
-                    <li>各ラウンドでプレイヤー数分のカードを公開したら、カードを回収して再配布します</li>
-                </ul>
+                <div class="rule-toggle">
+                    <button id="toggle-rules" class="btn btn-small">ルールを表示</button>
+                    <ul id="game-rules" class="rules-list" style="display: none;">
+                        <li>探検家チーム：財宝を7個すべて見つけることが目標</li>
+                        <li>守護者チーム：罠を2個（10人プレイ時は3個）すべて発動させるか、4ラウンド終了まで財宝を守ることが目標</li>
+                        <li>各プレイヤーには最初5枚のカードが配られます</li>
+                        <li>自分のカードの内訳は分かりますが、位置は分かりません</li>
+                        <li>鍵を持った人が、他のプレイヤーのカードを1枚選んで公開します</li>
+                        <li>選ばれた人が次に鍵を受け取ります</li>
+                        <li>各ラウンドでプレイヤー数分のカードを公開したら、カードを回収して再配布します</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -92,86 +95,118 @@
                 <div id="players-list"></div>
             </div>
             
-            <button id="start-game" class="btn" style="display: none;">ゲーム開始 (3人以上必要)</button>
-            <button id="leave-room" class="btn" style="margin-top: 10px;">ルームを退出</button>
+            <div class="room-buttons">
+                <button id="start-game" class="btn btn-primary" style="display: none;">ゲーム開始 (3人以上必要)</button>
+                <button id="leave-room" class="btn btn-secondary">ルームを退出</button>
+            </div>
         </div>
 
         <!-- ゲーム画面 -->
         <div id="game-board" class="game-board">
-            <!-- 役職可能性とカード内訳 -->
-            <div class="game-overview">
-                <div class="role-possibility">
-                    <h4>このゲームの役職構成</h4>
-                    <p id="role-possibility-text"></p>
-                </div>
-                <div class="card-distribution">
-                    <h4>カード内訳</h4>
-                    <p id="card-distribution-text"></p>
+            <!-- 折りたたみ可能なゲーム概要 -->
+            <div class="collapsible-section">
+                <button class="section-toggle" onclick="toggleSection('game-overview')">
+                    <span>ゲーム情報</span> <span class="toggle-icon">▼</span>
+                </button>
+                <div id="game-overview" class="game-overview collapsed">
+                    <div class="overview-grid">
+                        <div class="role-possibility">
+                            <h4>役職構成</h4>
+                            <p id="role-possibility-text"></p>
+                        </div>
+                        <div class="card-distribution">
+                            <h4>カード内訳</h4>
+                            <p id="card-distribution-text"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 進捗バー -->
             <div class="progress-bars">
                 <div class="treasure-progress">
-                    <span>財宝：</span>
+                    <span>財宝</span>
                     <div id="treasure-icons" class="icon-row"></div>
                 </div>
                 <div class="trap-progress">
-                    <span>罠：</span>
+                    <span>罠</span>
                     <div id="trap-icons" class="icon-row"></div>
                 </div>
             </div>
 
-            <div class="game-info">
-                <div class="info-card">
-                    <h3>ラウンド</h3>
-                    <div><span id="current-round">1</span> / 4</div>
-                </div>
-                <div class="info-card">
-                    <h3>財宝発見</h3>
-                    <div><span id="treasure-found">0</span> / 7</div>
-                </div>
-                <div class="info-card">
-                    <h3>罠発動</h3>
-                    <div><span id="trap-triggered">0</span> / <span id="trap-goal">2</span></div>
-                </div>
-                <div class="info-card">
-                    <h3>配布枚数</h3>
-                    <div id="cards-per-player">5</div>
-                </div>
-                <div class="info-card">
-                    <h3>このラウンド</h3>
-                    <div><span id="cards-flipped">0</span>枚公開</div>
+            <!-- コンパクトなゲーム情報 -->
+            <div class="game-info mobile-compact">
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="label">R</span>
+                        <span class="value"><span id="current-round">1</span>/4</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">💰</span>
+                        <span class="value"><span id="treasure-found">0</span>/<span id="treasure-goal">7</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">💀</span>
+                        <span class="value"><span id="trap-triggered">0</span>/<span id="trap-goal">2</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">配布</span>
+                        <span class="value" id="cards-per-player">5</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">公開</span>
+                        <span class="value"><span id="cards-flipped">0</span>枚</span>
+                    </div>
                 </div>
             </div>
 
-            <div id="role-reveal" class="role-card">
-                <h3>あなたの役職</h3>
-                <img id="role-image" class="role-image" src="" alt="">
-                <div id="player-role"></div>
-                <p id="role-description"></p>
+            <!-- 役職表示 -->
+            <div id="role-reveal" class="role-card compact">
+                <div class="role-header">
+                    <img id="role-image" class="role-image-small" src="" alt="">
+                    <div class="role-info">
+                        <div id="player-role"></div>
+                        <p id="role-description"></p>
+                    </div>
+                </div>
             </div>
 
-            <div id="key-holder-message" class="key-holder-message">
-                <h3><img src="images/key-icon.png" class="key-icon" alt="鍵"> 鍵を持っているプレイヤー: <span id="key-holder-name"></span></h3>
-                <p id="turn-message"></p>
+            <!-- 鍵保持者情報 -->
+            <div id="key-holder-message" class="key-holder-message compact">
+                <div class="key-info">
+                    <img src="/images/key-icon.png" class="key-icon-small" alt="鍵">
+                    <span>鍵: <strong id="key-holder-name"></strong></span>
+                </div>
+                <p id="turn-message" class="turn-status"></p>
             </div>
 
+            <!-- 自分のカード -->
             <div class="my-cards-section">
-                <h3>あなたのカード</h3>
-                <p>内訳: 財宝 <span id="my-treasure">0</span>枚 / 罠 <span id="my-trap">0</span>枚 / 空き部屋 <span id="my-empty">0</span>枚</p>
-                <div id="my-cards-grid" class="my-cards-grid"></div>
+                <div class="section-header">
+                    <h3>あなたのカード</h3>
+                    <p class="card-info">財宝 <span id="my-treasure">0</span> / 罠 <span id="my-trap">0</span> / 空き <span id="my-empty">0</span></p>
+                </div>
+                <div id="my-cards-grid" class="my-cards-grid mobile-optimized"></div>
             </div>
 
+            <!-- 他のプレイヤー -->
             <div class="other-players-section">
                 <h3>他のプレイヤー</h3>
                 <div id="other-players-container"></div>
             </div>
 
-            <div id="chat-container" class="chat-container"></div>
-            <div class="chat-input-container">
-                <input type="text" id="chat-input" placeholder="メッセージを入力..." maxlength="100">
-                <button id="send-chat" class="btn" style="width: auto;">送信</button>
+            <!-- チャット -->
+            <div class="collapsible-section">
+                <button class="section-toggle" onclick="toggleSection('chat-section')">
+                    <span>チャット</span> <span class="toggle-icon">▼</span>
+                </button>
+                <div id="chat-section" class="collapsed">
+                    <div id="chat-container" class="chat-container mobile"></div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="メッセージ..." maxlength="100">
+                        <button id="send-chat" class="btn btn-small">送信</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -197,5 +232,25 @@
     <script src="js/ui.js"></script>
     <script src="js/socketClient.js"></script>
     <script src="js/game.js"></script>
+    
+    <script>
+        // 折りたたみ機能
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const button = section.previousElementSibling;
+            const icon = button.querySelector('.toggle-icon');
+            
+            section.classList.toggle('collapsed');
+            icon.textContent = section.classList.contains('collapsed') ? '▼' : '▲';
+        }
+
+        // ルール表示切り替え
+        document.getElementById('toggle-rules').addEventListener('click', function() {
+            const rules = document.getElementById('game-rules');
+            const isHidden = rules.style.display === 'none';
+            rules.style.display = isHidden ? 'block' : 'none';
+            this.textContent = isHidden ? 'ルールを隠す' : 'ルールを表示';
+        });
+    </script>
 </body>
 </html>
