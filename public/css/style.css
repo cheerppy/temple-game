@@ -98,6 +98,12 @@ body {
     box-shadow: 0 6px 20px rgba(4, 56, 76, 0.6);
 }
 
+.btn:disabled {
+    background: #2a2a2a;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-small {
     padding: 8px 16px;
     font-size: 12px;
@@ -221,6 +227,11 @@ body {
     border: 2px solid rgba(135, 206, 235, 0.2);
 }
 
+.room-list h3 {
+    color: #87CEEB;
+    margin-bottom: 15px;
+}
+
 .room-item {
     background: rgba(4, 56, 76, 0.3);
     padding: 15px;
@@ -230,6 +241,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.room-item:hover {
+    background: rgba(4, 56, 76, 0.5);
+    transform: translateX(5px);
 }
 
 .room-item-info {
@@ -239,6 +256,67 @@ body {
 
 .room-item .btn {
     width: 100%;
+}
+
+.password-icon {
+    color: #FFD700;
+    margin-left: 10px;
+}
+
+/* ルーム情報画面 */
+.room-info {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: none;
+    border: 2px solid rgba(135, 206, 235, 0.2);
+}
+
+.room-id-display {
+    background: rgba(255, 215, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: clamp(1.2em, 4vw, 1.5em);
+    font-weight: bold;
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    word-break: break-all;
+}
+
+.players-list {
+    background: rgba(4, 56, 76, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.players-list h3 {
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.player-item {
+    padding: 10px;
+    margin: 6px 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.player-item.host::after {
+    content: "👑";
+    margin-left: 8px;
+}
+
+.room-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* ゲーム画面 */
@@ -328,14 +406,111 @@ body {
     flex-wrap: wrap;
 }
 
+/* 進捗アイコンの修正版 - 画像とフォールバック両対応 */
 .progress-icon {
     width: 32px;
     height: 32px;
+    border-radius: 50%;
+    transition: all 0.5s ease;
+    border: 2px solid transparent;
+    position: relative;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    transition: all 0.5s ease;
-    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    overflow: hidden;
+}
+
+/* 財宝アイコン */
+.progress-icon.treasure {
+    background-image: url('/images/treasure-icon-active.png');
+    background-color: linear-gradient(135deg, #FFD700, #FFA500);
+    border-color: #FFD700;
+}
+
+.progress-icon.treasure.used {
+    background-image: url('/images/treasure-icon-inactive.png');
+    background-color: #555;
+    opacity: 0.4;
+    border-color: #666;
+}
+
+/* 罠アイコン */
+.progress-icon.trap {
+    background-image: url('/images/trap-icon-active.png');
+    background-color: linear-gradient(135deg, #8B0000, #DC143C);
+    border-color: #8B0000;
+}
+
+.progress-icon.trap.used {
+    background-image: url('/images/trap-icon-inactive.png');
+    background-color: #333;
+    opacity: 0.4;
+    border-color: #444;
+}
+
+/* 画像が読み込めない場合のフォールバック（絵文字表示） */
+.progress-icon.treasure:not([style*="background-image"])::before,
+.progress-icon.treasure.no-image::before {
+    content: '💰';
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.progress-icon.treasure.used:not([style*="background-image"])::before,
+.progress-icon.treasure.used.no-image::before {
+    content: '💰';
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: grayscale(100%) brightness(0.7);
+}
+
+.progress-icon.trap:not([style*="background-image"])::before,
+.progress-icon.trap.no-image::before {
+    content: '💀';
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.progress-icon.trap.used:not([style*="background-image"])::before,
+.progress-icon.trap.used.no-image::before {
+    content: '💀';
+    font-size: 18px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: grayscale(100%) brightness(0.7);
+}
+
+/* 画像エラー時の処理用 */
+.progress-icon img {
+    display: none;
+}
+
+/* 強制的に絵文字表示する場合のクラス */
+.progress-icon.emoji-only {
+    background-image: none !important;
+}
+
+.progress-icon.emoji-only.treasure::before {
+    content: '💰';
+}
+
+.progress-icon.emoji-only.trap::before {
+    content: '💀';
 }
 
 /* コンパクトなゲーム情報 */
@@ -378,6 +553,16 @@ body {
     border-radius: 10px;
     margin-bottom: 15px;
     border: 3px solid #04384c;
+}
+
+.role-adventurer {
+    border-color: #FFD700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.role-guardian {
+    border-color: #8B0000;
+    background: rgba(139, 0, 0, 0.1);
 }
 
 .role-header {
@@ -482,6 +667,26 @@ body {
     font-weight: bold;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     min-height: 80px;
+    position: relative;
+}
+
+.card.revealed {
+    opacity: 0.5;
+}
+
+.card.treasure {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #04384c;
+}
+
+.card.trap {
+    background: linear-gradient(135deg, #8B0000, #DC143C);
+    color: white;
+}
+
+.card.empty {
+    background: linear-gradient(135deg, #4a4a4a, #6a6a6a);
+    color: white;
 }
 
 .card-image {
@@ -549,6 +754,31 @@ body {
     border-color: #87CEEB;
 }
 
+.other-card.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.other-card.revealed {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.other-card.treasure {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #04384c;
+}
+
+.other-card.trap {
+    background: linear-gradient(135deg, #8B0000, #DC143C);
+    color: white;
+}
+
+.other-card.empty {
+    background: linear-gradient(135deg, #4a4a4a, #6a6a6a);
+    color: white;
+}
+
 .other-card-image {
     width: 100%;
     height: 100%;
@@ -599,62 +829,6 @@ body {
     color: #e8f4f8;
     font-size: 14px;
     min-height: 40px;
-}
-
-/* ルーム情報画面 */
-.room-info {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: none;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-.room-id-display {
-    background: rgba(255, 215, 0, 0.2);
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: clamp(1.2em, 4vw, 1.5em);
-    font-weight: bold;
-    border: 2px solid rgba(255, 215, 0, 0.5);
-    word-break: break-all;
-}
-
-.players-list {
-    background: rgba(4, 56, 76, 0.3);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-.players-list h3 {
-    margin-bottom: 12px;
-    font-size: 16px;
-}
-
-.player-item {
-    padding: 10px;
-    margin: 6px 0;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-}
-
-.player-item.host::after {
-    content: "👑";
-    margin-left: 8px;
-}
-
-.room-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
 /* エラーメッセージ */
@@ -816,6 +990,16 @@ body {
     .card-info {
         font-size: 11px;
     }
+    
+    .progress-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+    
+    .progress-icon::before {
+        font-size: 16px !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -859,6 +1043,16 @@ body {
     
     .victory-content {
         padding: 20px;
+    }
+    
+    .progress-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+    
+    .progress-icon::before {
+        font-size: 14px !important;
     }
 }
 
