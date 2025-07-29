@@ -151,13 +151,13 @@ function generateAllCards(playerCount) {
 
     const cards = [];
     for (let i = 0; i < treasureCount; i++) {
-        cards.push({ type: 'treasure', id: `treasure-${i}` });
+        cards.push({ type: 'treasure', id: `treasure-${i}`, revealed: false });
     }
     for (let i = 0; i < trapCount; i++) {
-        cards.push({ type: 'trap', id: `trap-${i}` });
+        cards.push({ type: 'trap', id: `trap-${i}`, revealed: false });
     }
     for (let i = 0; i < emptyCount; i++) {
-        cards.push({ type: 'empty', id: `empty-${i}` });
+        cards.push({ type: 'empty', id: `empty-${i}`, revealed: false });
     }
     
     return { cards, treasureCount, trapCount };
@@ -184,9 +184,25 @@ function distributeCards(allCards, playerCount, cardsPerPlayer) {
     return { playerHands, remainingCards: shuffledCards };
 }
 
+// 修正：勝利条件を正しく設定
 function calculateVictoryGoal(playerCount) {
-    const treasureGoal = playerCount <= 5 ? 7 : 8;
+    // 財宝の勝利条件：全ての財宝を発見する
+    let treasureGoal;
+    switch(playerCount) {
+        case 3: treasureGoal = 5; break;
+        case 4: treasureGoal = 6; break;
+        case 5: treasureGoal = 7; break;
+        case 6: treasureGoal = 8; break;
+        case 7: treasureGoal = 7; break;
+        case 8: treasureGoal = 8; break;
+        case 9: treasureGoal = 9; break;
+        case 10: treasureGoal = 10; break;
+        default: treasureGoal = 7; break;
+    }
+    
+    // 罠の勝利条件：全ての罠を発動させる
     const trapGoal = playerCount === 10 ? 3 : 2;
+    
     return { treasureGoal, trapGoal };
 }
 
