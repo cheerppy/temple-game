@@ -21,21 +21,25 @@ class SocketClient {
     }
 
     setupEventListeners() {
+        // 接続イベント
         this.socket.on('connect', () => {
             this.game.mySocketId = this.socket.id;
             UIManager.showConnectionStatus('connected');
             console.log('サーバーに接続しました');
         });
 
+        // 切断イベント
         this.socket.on('disconnect', () => {
             UIManager.showConnectionStatus('disconnected');
             console.log('サーバーから切断されました');
         });
 
+        // ルーム一覧受信
         this.socket.on('roomList', (rooms) => {
             UIManager.updateRoomList(rooms);
         });
 
+        // ルーム作成完了
         this.socket.on('roomCreated', (data) => {
             this.game.roomId = data.roomId;
             this.game.gameData = data.gameData;
@@ -43,29 +47,35 @@ class SocketClient {
             this.game.showRoomInfo();
         });
 
+        // ゲーム状態更新
         this.socket.on('gameUpdate', (gameData) => {
             this.game.gameData = gameData;
             this.game.updateUI();
         });
 
+        // メッセージ受信
         this.socket.on('newMessage', (messages) => {
             UIManager.updateMessages(messages);
         });
 
+        // ラウンド開始受信
         this.socket.on('roundStart', (roundNumber) => {
             UIManager.showRoundStart(roundNumber);
         });
 
+        // エラー処理
         this.socket.on('error', (error) => {
             UIManager.showError(error.message);
         });
 
+        // 接続エラー処理
         this.socket.on('connect_error', (error) => {
             console.error('接続エラー:', error);
             UIManager.showError('サーバーに接続できません');
         });
     }
 
+    // Socket.io通信メソッド
     emit(event, data) {
         this.socket.emit(event, data);
     }
@@ -99,4 +109,5 @@ class SocketClient {
     }
 }
 
+// グローバルに公開
 window.SocketClient = SocketClient;
