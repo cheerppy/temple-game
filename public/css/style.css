@@ -536,31 +536,52 @@ body {
     gap: 8px;
 }
 
+/* 進捗アイコン - 画像ではなく絵文字で表示 */
 .progress-icon {
     width: 40px;
     height: 40px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border-radius: 50%;
     transition: all 0.5s ease;
 }
 
 .progress-icon.treasure {
-    background-image: url('images/treasure-icon-active.png');
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+}
+
+.progress-icon.treasure::before {
+    content: '💰';
 }
 
 .progress-icon.treasure.used {
-    background-image: url('images/treasure-icon-inactive.png');
+    background: #555;
     opacity: 0.4;
+}
+
+.progress-icon.treasure.used::before {
+    content: '💰';
+    filter: grayscale(100%);
 }
 
 .progress-icon.trap {
-    background-image: url('images/trap-icon-active.png');
+    background: linear-gradient(135deg, #8B0000, #DC143C);
+}
+
+.progress-icon.trap::before {
+    content: '💀';
 }
 
 .progress-icon.trap.used {
-    background-image: url('images/trap-icon-inactive.png');
+    background: #333;
     opacity: 0.4;
+}
+
+.progress-icon.trap.used::before {
+    content: '💀';
+    filter: grayscale(100%);
 }
 
 /* 役職画像 */
@@ -581,50 +602,17 @@ body {
     margin-right: 5px;
 }
 
-/* カード画像のプレースホルダー */
+/* カード画像 */
 .card-image {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-.card.treasure .card-image {
-    content: url('images/card-treasure-large.png');
-}
-
-.card.trap .card-image {
-    content: url('images/card-trap-large.png');
-}
-
-.card.empty .card-image {
-    content: url('images/card-empty-large.png');
-}
-
-.card:not(.revealed) .card-image {
-    content: url('images/card-back-large.png');
-}
-
-/* 他プレイヤーのカード画像 */
 .other-card-image {
     width: 60px;
     height: 80px;
     object-fit: contain;
-}
-
-.other-card.treasure .other-card-image {
-    content: url('images/card-treasure-medium.png');
-}
-
-.other-card.trap .other-card-image {
-    content: url('images/card-trap-medium.png');
-}
-
-.other-card.empty .other-card-image {
-    content: url('images/card-empty-medium.png');
-}
-
-.other-card:not(.revealed) .other-card-image {
-    content: url('images/card-back-medium.png');
 }
 
 /* チャット入力 */
@@ -696,5 +684,19 @@ body {
     100% {
         transform: scale(1);
         opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .game-info {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .my-cards-grid, .other-player-cards {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
