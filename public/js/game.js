@@ -9,6 +9,9 @@ class TreasureTempleGame {
         
         this.socketClient = new SocketClient(this);
         this.initializeEventListeners();
+        
+        // ページ読み込み時に再接続を試行
+        this.attemptReconnection();
     }
 
     initializeEventListeners() {
@@ -30,6 +33,58 @@ class TreasureTempleGame {
         document.getElementById('chat-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendChat();
         });
+
+        // ページ離脱時の警告
+        window.addEventListener('beforeunload', (e) => {
+            if (this.roomId && this.gameData && this.gameData.gameState === 'playing') {
+                e.preventDefault();
+                e.returnValue = 'ゲーム中です。本当にページを離れますか？';
+                return e.returnValue;
+            }
+        });
+    }
+
+    // 再接続処理
+    attemptReconnection() {
+        try {
+            const savedPlayerInfo = localStorage.getItem('pigGamePlayerInfo');
+            if (savedPlayerInfo) {
+                const playerInfo = JSON.parse(savedPlayerInfo);
+                console.log('保存された情報で再接続を試行:', playerInfo);
+                
+                this.myName = playerInfo.playerName;
+                this.isHost = playerInfo.isHost;
+                UIManager.showPlayerName(this.myName);
+                
+                // 少し待ってから再接続を試行（Socket.io接続完了を待つ）
+                setTimeout(() => {
+                    this.socketClient.reconnectToRoom(playerInfo.roomId, playerInfo.playerName);
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('再接続情報の読み込みエラー:', error);
+            localStorage.removeItem('pigGamePlayerInfo');
+        }
+    }
+
+    // プレイヤー情報を保存
+    savePlayerInfo(playerInfo) {
+        try {
+            localStorage.setItem('pigGamePlayerInfo', JSON.stringify(playerInfo));
+            console.log('プレイヤー情報を保存:', playerInfo);
+        } catch (error) {
+            console.error('プレイヤー情報の保存エラー:', error);
+        }
+    }
+
+    // プレイヤー情報を削除
+    clearPlayerInfo() {
+        try {
+            localStorage.removeItem('pigGamePlayerInfo');
+            console.log('プレイヤー情報を削除');
+        } catch (error) {
+            console.error('プレイヤー情報の削除エラー:', error);
+        }
     }
 
     createRoom() {
@@ -65,6 +120,41 @@ class TreasureTempleGame {
         this.socketClient.joinRoom(roomId, playerName, password);
     }
 
+    // ルーム作成成功時
+    onRoomCreated(data) {
+        this.roomId = data.roomId;
+        this.gameData = data.gameData;
+        this.isHost = true;
+        
+        // プレイヤー情報を保存
+        this.savePlayerInfo(data.playerInfo);
+        
+        this.showRoomInfo();
+    }
+
+    // ルーム参加成功時
+    onJoinSuccess(data) {
+        this.roomId = data.roomId;
+        this.gameData = data.gameData;
+        this.isHost = data.playerInfo.isHost;
+        
+        // プレイヤー情報を保存
+        this.savePlayerInfo(data.playerInfo);
+        
+        this.updateUI();
+    }
+
+    // 再接続成功時
+    onReconnectSuccess(data) {
+        console.log('再接続成功:', data);
+        this.roomId = data.roomId;
+        this.gameData = data.gameData;
+        this.isHost = data.isHost;
+        
+        UIManager.showError('ゲームに再接続しました！', 'success');
+        this.updateUI();
+    }
+
     showRoomInfo() {
         UIManager.showScreen('room-info');
         document.getElementById('room-id-display').textContent = this.roomId;
@@ -72,6 +162,9 @@ class TreasureTempleGame {
 
     updateUI() {
         if (!this.gameData) return;
+
+        // 財宝目標をUIに反映
+        document.getElementById('treasure-goal').textContent = this.gameData.treasureGoal || 7;
 
         UIManager.updatePlayersList(this.gameData.players, this.gameData.host);
 
@@ -124,9 +217,9 @@ class TreasureTempleGame {
         const roleImage = document.getElementById('role-image');
 
         if (myRole === 'adventurer') {
-            roleCard.className = 'role-card role-adventurer';
+            roleCard.className = 'role-card role-adventurer compact';
             roleText.textContent = '⛏️ 探検家 (Adventurer)';
-            roleDesc.textContent = '財宝を7個すべて見つけることが目標です！';
+            roleDesc.textContent = `財宝を${this.gameData.treasureGoal || 7}個すべて見つけることが目標です！`;
             roleImage.src = '/images/role-adventurer.png';
             roleImage.alt = '探検家';
             // 画像が読み込めない場合のフォールバック
@@ -134,14 +227,14 @@ class TreasureTempleGame {
                 roleImage.style.display = 'none';
                 const emoji = document.createElement('div');
                 emoji.textContent = '⛏️';
-                emoji.style.fontSize = '8em';
+                emoji.style.fontSize = '4em';
                 emoji.style.textAlign = 'center';
                 roleImage.parentNode.insertBefore(emoji, roleImage.nextSibling);
             };
         } else if (myRole === 'guardian') {
-            roleCard.className = 'role-card role-guardian';
+            roleCard.className = 'role-card role-guardian compact';
             roleText.textContent = '🛡️ 守護者 (Guardian)';
-            roleDesc.textContent = '罠をすべて発動させるか、4ラウンド終了まで財宝を守ることが目標です！';
+            roleDesc.textContent = `罠を${this.gameData.trapGoal || 2}個すべて発動させるか、4ラウンド終了まで財宝を守ることが目標です！`;
             roleImage.src = '/images/role-guardian.png';
             roleImage.alt = '守護者';
             // 画像が読み込めない場合のフォールバック
@@ -149,7 +242,7 @@ class TreasureTempleGame {
                 roleImage.style.display = 'none';
                 const emoji = document.createElement('div');
                 emoji.textContent = '🛡️';
-                emoji.style.fontSize = '8em';
+                emoji.style.fontSize = '4em';
                 emoji.style.textAlign = 'center';
                 roleImage.parentNode.insertBefore(emoji, roleImage.nextSibling);
             };
@@ -180,7 +273,7 @@ class TreasureTempleGame {
                 img.onerror = () => {
                     img.style.display = 'none';
                     const emoji = document.createElement('div');
-                    emoji.style.fontSize = '3em';
+                    emoji.style.fontSize = '2.5em';
                     emoji.style.textAlign = 'center';
                     emoji.style.lineHeight = '1';
                     switch (card.type) {
@@ -209,7 +302,7 @@ class TreasureTempleGame {
                     img.style.display = 'none';
                     const emoji = document.createElement('div');
                     emoji.textContent = '❓';
-                    emoji.style.fontSize = '3em';
+                    emoji.style.fontSize = '2.5em';
                     emoji.style.textAlign = 'center';
                     emoji.style.lineHeight = '1';
                     div.appendChild(emoji);
@@ -253,10 +346,17 @@ class TreasureTempleGame {
 
             const header = document.createElement('h4');
             header.textContent = player.name;
+            
+            // 切断状態の表示
+            if (!player.connected) {
+                header.textContent += ' (切断中)';
+                header.style.color = '#888';
+            }
+            
             if (player.id === this.gameData.keyHolderId) {
                 const keyImg = document.createElement('img');
                 keyImg.src = '/images/key-icon.png';
-                keyImg.className = 'key-icon';
+                keyImg.className = 'key-icon-small';
                 keyImg.alt = '鍵';
                 
                 // 画像が読み込めない場合のフォールバック
@@ -264,8 +364,8 @@ class TreasureTempleGame {
                     keyImg.style.display = 'none';
                     const emoji = document.createElement('span');
                     emoji.textContent = '🗝️';
-                    emoji.style.fontSize = '24px';
-                    emoji.style.marginRight = '5px';
+                    emoji.style.fontSize = '20px';
+                    emoji.style.marginLeft = '8px';
                     header.appendChild(emoji);
                 };
                 
@@ -291,7 +391,7 @@ class TreasureTempleGame {
                     img.onerror = () => {
                         img.style.display = 'none';
                         const emoji = document.createElement('div');
-                        emoji.style.fontSize = '2em';
+                        emoji.style.fontSize = '1.5em';
                         emoji.style.textAlign = 'center';
                         emoji.style.lineHeight = '1';
                         switch (card.type) {
@@ -320,7 +420,7 @@ class TreasureTempleGame {
                         img.style.display = 'none';
                         const emoji = document.createElement('div');
                         emoji.textContent = '❓';
-                        emoji.style.fontSize = '2em';
+                        emoji.style.fontSize = '1.5em';
                         emoji.style.textAlign = 'center';
                         emoji.style.lineHeight = '1';
                         cardDiv.appendChild(emoji);
@@ -328,7 +428,7 @@ class TreasureTempleGame {
                     
                     cardDiv.appendChild(img);
                     
-                    if (isMyTurn && !card.revealed) {
+                    if (isMyTurn && !card.revealed && player.connected) {
                         cardDiv.addEventListener('click', () => {
                             this.selectCard(player.id, index);
                         });
@@ -368,6 +468,9 @@ class TreasureTempleGame {
         this.roomId = null;
         this.gameData = null;
         this.isHost = false;
+        
+        // プレイヤー情報を削除
+        this.clearPlayerInfo();
         
         UIManager.showScreen('lobby');
     }
