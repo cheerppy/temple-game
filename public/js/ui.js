@@ -64,11 +64,13 @@ class UIManager {
     }
 
     static showScreen(screenName) {
+        // すべての画面を非表示
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('room-info').style.display = 'none';
         document.getElementById('game-board').style.display = 'none';
         document.getElementById('victory-screen').style.display = 'none';
         
+        // 指定された画面を表示
         if (screenName) {
             const screen = document.getElementById(screenName);
             if (screen) screen.style.display = 'block';
@@ -145,6 +147,7 @@ class UIManager {
         const treasureFound = gameData.treasureFound || 0;
         const trapTriggered = gameData.trapTriggered || 0;
 
+        // 財宝の進捗バー
         const treasureContainer = document.getElementById('treasure-icons');
         treasureContainer.innerHTML = '';
         for (let i = 0; i < treasureTotal; i++) {
@@ -156,6 +159,7 @@ class UIManager {
             treasureContainer.appendChild(icon);
         }
 
+        // 罠の進捗バー
         const trapContainer = document.getElementById('trap-icons');
         trapContainer.innerHTML = '';
         for (let i = 0; i < trapTotal; i++) {
