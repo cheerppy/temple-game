@@ -127,14 +127,32 @@ class TreasureTempleGame {
             roleCard.className = 'role-card role-adventurer';
             roleText.textContent = '⛏️ 探検家 (Adventurer)';
             roleDesc.textContent = '財宝を7個すべて見つけることが目標です！';
-            roleImage.src = 'images/role-adventurer.png';
+            roleImage.src = '/images/role-adventurer.png';
             roleImage.alt = '探検家';
+            // 画像が読み込めない場合のフォールバック
+            roleImage.onerror = () => {
+                roleImage.style.display = 'none';
+                const emoji = document.createElement('div');
+                emoji.textContent = '⛏️';
+                emoji.style.fontSize = '8em';
+                emoji.style.textAlign = 'center';
+                roleImage.parentNode.insertBefore(emoji, roleImage.nextSibling);
+            };
         } else if (myRole === 'guardian') {
             roleCard.className = 'role-card role-guardian';
             roleText.textContent = '🛡️ 守護者 (Guardian)';
             roleDesc.textContent = '罠をすべて発動させるか、4ラウンド終了まで財宝を守ることが目標です！';
-            roleImage.src = 'images/role-guardian.png';
+            roleImage.src = '/images/role-guardian.png';
             roleImage.alt = '守護者';
+            // 画像が読み込めない場合のフォールバック
+            roleImage.onerror = () => {
+                roleImage.style.display = 'none';
+                const emoji = document.createElement('div');
+                emoji.textContent = '🛡️';
+                emoji.style.fontSize = '8em';
+                emoji.style.textAlign = 'center';
+                roleImage.parentNode.insertBefore(emoji, roleImage.nextSibling);
+            };
         }
     }
 
@@ -155,14 +173,48 @@ class TreasureTempleGame {
                 div.classList.add('revealed', card.type);
                 const img = document.createElement('img');
                 img.className = 'card-image';
-                img.src = `images/card-${card.type}-large.png`;
+                img.src = `/images/card-${card.type}-large.png`;
                 img.alt = card.type;
+                
+                // 画像が読み込めない場合のフォールバック
+                img.onerror = () => {
+                    img.style.display = 'none';
+                    const emoji = document.createElement('div');
+                    emoji.style.fontSize = '3em';
+                    emoji.style.textAlign = 'center';
+                    emoji.style.lineHeight = '1';
+                    switch (card.type) {
+                        case 'treasure':
+                            emoji.textContent = '💰';
+                            break;
+                        case 'trap':
+                            emoji.textContent = '💀';
+                            break;
+                        case 'empty':
+                            emoji.textContent = '🏠';
+                            break;
+                    }
+                    div.appendChild(emoji);
+                };
+                
                 div.appendChild(img);
             } else {
                 const img = document.createElement('img');
                 img.className = 'card-image';
-                img.src = 'images/card-back-large.png';
+                img.src = '/images/card-back-large.png';
                 img.alt = 'カード裏面';
+                
+                // 画像が読み込めない場合のフォールバック
+                img.onerror = () => {
+                    img.style.display = 'none';
+                    const emoji = document.createElement('div');
+                    emoji.textContent = '❓';
+                    emoji.style.fontSize = '3em';
+                    emoji.style.textAlign = 'center';
+                    emoji.style.lineHeight = '1';
+                    div.appendChild(emoji);
+                };
+                
                 div.appendChild(img);
                 
                 switch (card.type) {
@@ -203,9 +255,20 @@ class TreasureTempleGame {
             header.textContent = player.name;
             if (player.id === this.gameData.keyHolderId) {
                 const keyImg = document.createElement('img');
-                keyImg.src = 'images/key-icon.png';
+                keyImg.src = '/images/key-icon.png';
                 keyImg.className = 'key-icon';
                 keyImg.alt = '鍵';
+                
+                // 画像が読み込めない場合のフォールバック
+                keyImg.onerror = () => {
+                    keyImg.style.display = 'none';
+                    const emoji = document.createElement('span');
+                    emoji.textContent = '🗝️';
+                    emoji.style.fontSize = '24px';
+                    emoji.style.marginRight = '5px';
+                    header.appendChild(emoji);
+                };
+                
                 header.appendChild(keyImg);
             }
             playerBox.appendChild(header);
@@ -221,14 +284,48 @@ class TreasureTempleGame {
                     cardDiv.classList.add('revealed', card.type);
                     const img = document.createElement('img');
                     img.className = 'other-card-image';
-                    img.src = `images/card-${card.type}-medium.png`;
+                    img.src = `/images/card-${card.type}-medium.png`;
                     img.alt = card.type;
+                    
+                    // 画像が読み込めない場合のフォールバック
+                    img.onerror = () => {
+                        img.style.display = 'none';
+                        const emoji = document.createElement('div');
+                        emoji.style.fontSize = '2em';
+                        emoji.style.textAlign = 'center';
+                        emoji.style.lineHeight = '1';
+                        switch (card.type) {
+                            case 'treasure':
+                                emoji.textContent = '💰';
+                                break;
+                            case 'trap':
+                                emoji.textContent = '💀';
+                                break;
+                            case 'empty':
+                                emoji.textContent = '🏠';
+                                break;
+                        }
+                        cardDiv.appendChild(emoji);
+                    };
+                    
                     cardDiv.appendChild(img);
                 } else {
                     const img = document.createElement('img');
                     img.className = 'other-card-image';
-                    img.src = 'images/card-back-medium.png';
+                    img.src = '/images/card-back-medium.png';
                     img.alt = 'カード裏面';
+                    
+                    // 画像が読み込めない場合のフォールバック
+                    img.onerror = () => {
+                        img.style.display = 'none';
+                        const emoji = document.createElement('div');
+                        emoji.textContent = '❓';
+                        emoji.style.fontSize = '2em';
+                        emoji.style.textAlign = 'center';
+                        emoji.style.lineHeight = '1';
+                        cardDiv.appendChild(emoji);
+                    };
+                    
                     cardDiv.appendChild(img);
                     
                     if (isMyTurn && !card.revealed) {
