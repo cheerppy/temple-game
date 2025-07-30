@@ -1,4 +1,64 @@
 class UIManager {
+    // 観戦モード表示の切り替え
+    static showSpectatorMode(isSpectator) {
+        const existingIndicator = document.getElementById('spectator-indicator');
+        
+        if (isSpectator) {
+            if (!existingIndicator) {
+                const indicator = document.createElement('div');
+                indicator.id = 'spectator-indicator';
+                indicator.className = 'spectator-indicator';
+                indicator.textContent = '👁️ 観戦中';
+                document.body.appendChild(indicator);
+            }
+            
+            // ゲームボードに観戦モードのスタイルを適用
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) {
+                gameBoard.classList.add('spectator-mode');
+            }
+            
+            // 観戦者用の情報を表示
+            this.addSpectatorInfo();
+        } else {
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) {
+                gameBoard.classList.remove('spectator-mode');
+            }
+            
+            this.removeSpectatorInfo();
+        }
+    }
+
+    // 観戦者用情報の追加
+    static addSpectatorInfo() {
+        const gameBoard = document.getElementById('game-board');
+        if (!gameBoard || document.getElementById('spectator-controls')) return;
+
+        const spectatorControls = document.createElement('div');
+        spectatorControls.id = 'spectator-controls';
+        spectatorControls.className = 'spectator-controls';
+        spectatorControls.innerHTML = `
+            <div class="spectator-info">
+                観戦モード - ゲームの進行を見ることができますが、操作はできません
+            </div>
+        `;
+
+        gameBoard.insertBefore(spectatorControls, gameBoard.firstChild);
+    }
+
+    // 観戦者用情報の削除
+    static removeSpectatorInfo() {
+        const spectatorControls = document.getElementById('spectator-controls');
+        if (spectatorControls) {
+            spectatorControls.remove();
+        }
+    }
+
     static showConnectionStatus(status) {
         const statusEl = document.getElementById('connection-status');
         if (status === 'connected') {
@@ -127,36 +187,36 @@ class UIManager {
 
         switch (playerCount) {
             case 3:
-                roleText = '探検家 1-2人、守護者 1-2人';
-                cardText = '財宝5枚、罠2枚、空き部屋8枚';
+                roleText = '探検家 1-2人、豚男 1-2人';
+                cardText = '子供5人、罠2個、空き部屋8個';
                 break;
             case 4:
-                roleText = '探検家 2-3人、守護者 1-2人';
-                cardText = '財宝6枚、罠2枚、空き部屋12枚';
+                roleText = '探検家 2-3人、豚男 1-2人';
+                cardText = '子供6人、罠2個、空き部屋12個';
                 break;
             case 5:
-                roleText = '探検家 3人、守護者 2人';
-                cardText = '財宝7枚、罠2枚、空き部屋16枚';
+                roleText = '探検家 3人、豚男 2人';
+                cardText = '子供7人、罠2個、空き部屋16個';
                 break;
             case 6:
-                roleText = '探検家 4人、守護者 2人';
-                cardText = '財宝8枚、罠2枚、空き部屋20枚';
+                roleText = '探検家 4人、豚男 2人';
+                cardText = '子供8人、罠2個、空き部屋20個';
                 break;
             case 7:
-                roleText = '探検家 4-5人、守護者 2-3人';
-                cardText = '財宝7枚、罠2枚、空き部屋26枚';
+                roleText = '探検家 4-5人、豚男 2-3人';
+                cardText = '子供7人、罠2個、空き部屋26個';
                 break;
             case 8:
-                roleText = '探検家 5-6人、守護者 2-3人';
-                cardText = '財宝8枚、罠2枚、空き部屋30枚';
+                roleText = '探検家 5-6人、豚男 2-3人';
+                cardText = '子供8人、罠2個、空き部屋30個';
                 break;
             case 9:
-                roleText = '探検家 6人、守護者 3人';
-                cardText = '財宝9枚、罠2枚、空き部屋34枚';
+                roleText = '探検家 6人、豚男 3人';
+                cardText = '子供9人、罠2個、空き部屋34個';
                 break;
             case 10:
-                roleText = '探検家 6-7人、守護者 3-4人';
-                cardText = '財宝10枚、罠3枚、空き部屋37枚';
+                roleText = '探検家 6-7人、豚男 3-4人';
+                cardText = '子供10人、罠3個、空き部屋37個';
                 break;
         }
 
@@ -253,7 +313,7 @@ class UIManager {
             title.textContent = '⛏️ 探検家チームの勝利！';
             title.style.color = '#FFD700';
         } else {
-            title.textContent = '🛡️ 守護者チームの勝利！';
+            title.textContent = '🐷 豚男チームの勝利！';
             title.style.color = '#DC143C';
         }
         
