@@ -17,6 +17,115 @@ function setupSocketHandlers(io) {
             socket.emit('roomList', GameManager.getPublicRoomList());
         });
 
+        // 再入場処理を追加
+        socket.on('rejoinRoom', (data) => {
+            const { roomId, playerName } = data;
+            console.log(`再入場試行: ${playerName} -> ${roomId}`);
+            
+            const game = GameManager.get(roomId);
+            if (!game) {
+                socket.emit('error', { message: 'ルームが見つかりません' });
+                return;
+            }
+
+            const player = game.players.find(p => p.name === playerName);
+            if (!player) {
+                socket.emit('error', { message: 'プレイヤーが見つかりません。ゲームが終了した可能性があります。' });
+                return;
+            }
+
+            // プレイヤー情報を更新
+            player.id = socket.id;
+            player.connected = true;
+            
+            socket.join(roomId);
+            socket.roomId = roomId;
+
+            // 再入場成功を通知
+            socket.emit('rejoinSuccess', { 
+                roomId, 
+                gameData: game,
+                isHost: game.host === player.id || game.host === playerName
+            });
+
+            // 他のプレイヤーに再入場を通知
+            game.messages.push({
+                type: 'system',
+                text: `${playerName} がゲームに復帰しました`,
+                timestamp: Date.now()
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+            
+            console.log(`${playerName} が ${roomId} に再入場しました`);
+        });
+
+        // 一時退出処理を追加
+        socket.on('tempLeaveRoom', () => {
+            const roomId = socket.roomId;
+            if (!roomId) return;
+            
+            const game = GameManager.get(roomId);
+            if (!game) return;
+
+            const player = game.players.find(p => p.id === socket.id);
+            if (player) {
+                // 一時退出状態にマーク
+                player.connected = false;
+                player.tempLeft = true;
+                
+                game.messages.push({
+                    type: 'system',
+                    text: `${player.name} が一時退出しました（再入場可能）`,
+                    timestamp: Date.now()
+                });
+                
+                io.to(roomId).emit('gameUpdate', game);
+                io.to(roomId).emit('newMessage', game.messages);
+            }
+
+            socket.leave(roomId);
+            socket.roomId = null;
+            
+            console.log(`プレイヤーが ${roomId} から一時退出しました`);
+        });
+
+        // 観戦処理を追加
+        socket.on('spectateRoom', (data) => {
+            const { roomId, spectatorName } = data;
+            console.log(`観戦試行: ${spectatorName} -> ${roomId}`);
+            
+            const game = GameManager.get(roomId);
+            if (!game) {
+                socket.emit('error', { message: 'ルームが見つかりません' });
+                return;
+            }
+
+            // 観戦者として参加
+            socket.join(roomId);
+            socket.roomId = roomId;
+            socket.isSpectator = true;
+
+            // 観戦成功を通知
+            socket.emit('spectateSuccess', { 
+                roomId, 
+                gameData: game
+            });
+
+            // 他のプレイヤーに観戦者参加を通知
+            game.messages.push({
+                type: 'system',
+                text: `${spectatorName} が観戦を開始しました`,
+                timestamp: Date.now()
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+            
+            console.log(`${spectatorName} が ${roomId} を観戦開始`);
+        });
+
         // 再接続処理を追加
         socket.on('reconnectToRoom', (data) => {
             const { roomId, playerName } = data;
@@ -59,6 +168,12 @@ function setupSocketHandlers(io) {
             io.to(roomId).emit('newMessage', game.messages);
             
             console.log(`${playerName} が ${roomId} に再接続しました`);
+        });
+
+        // クライアントエラー監視
+        socket.on('clientError', (errorInfo) => {
+            console.error('Client Error Report:', errorInfo);
+            // ここでエラーログサービスに送信可能
         });
 
         socket.on('createRoom', (data) => {
@@ -241,15 +356,18 @@ function setupSocketHandlers(io) {
             const revealedCard = targetPlayer.hand[cardIndex];
             revealedCard.revealed = true;
 
+            // バイブレーション用にカード情報を追加
+            game.lastRevealedCard = { type: revealedCard.type };
+
             let message = `${targetPlayer.name} の`;
             switch (revealedCard.type) {
                 case 'treasure':
                     game.treasureFound++;
-                    message += '財宝が発見されました！💎';
+                    message += '豚に変えられた子供を発見しました！👶';
                     break;
                 case 'trap':
                     game.trapTriggered++;
-                    message += '罠が発動しました！💀';
+                    message += '豚男の罠が発動しました！💀';
                     break;
                 case 'empty':
                     message += '空き部屋でした 📦';
@@ -270,13 +388,13 @@ function setupSocketHandlers(io) {
             if (game.treasureFound >= game.treasureGoal) {
                 game.gameState = 'finished';
                 game.winningTeam = 'adventurer';
-                game.victoryMessage = `${game.treasureGoal}個の財宝を発見しました！探検家チームの勝利です！`;
+                game.victoryMessage = `${game.treasureGoal}人の子供を救出しました！探検家チームの勝利です！`;
                 console.log('探検家チーム勝利！');
             } else if (game.trapTriggered >= game.trapGoal) {
                 game.gameState = 'finished';
                 game.winningTeam = 'guardian';
-                game.victoryMessage = `${game.trapGoal}個の罠が発動しました！守護者チームの勝利です！`;
-                console.log('守護者チーム勝利！');
+                game.victoryMessage = `${game.trapGoal}個の罠が発動しました！豚男チームの勝利です！`;
+                console.log('豚男チーム勝利！');
             } else if (game.cardsFlippedThisRound >= game.players.length) {
                 endRound(game, roomId, io);
             }
@@ -289,6 +407,12 @@ function setupSocketHandlers(io) {
             const roomId = socket.roomId;
             if (!roomId) return;
             
+            // 観戦者の場合は特別な処理
+            if (socket.isSpectator) {
+                console.log('観戦者が切断しました');
+                return;
+            }
+            
             const game = GameManager.get(roomId);
             if (game) {
                 const player = game.players.find(p => p.id === socket.id);
@@ -296,18 +420,22 @@ function setupSocketHandlers(io) {
                     // 完全に削除するのではなく、切断状態にマーク
                     player.connected = false;
                     
-                    game.messages.push({
-                        type: 'system',
-                        text: `${player.name} が切断しました（再接続可能）`,
-                        timestamp: Date.now()
-                    });
-                    
-                    io.to(roomId).emit('gameUpdate', game);
-                    io.to(roomId).emit('newMessage', game.messages);
+                    // 一時退出でない場合のメッセージ
+                    if (!player.tempLeft) {
+                        game.messages.push({
+                            type: 'system',
+                            text: `${player.name} が切断しました（再接続可能）`,
+                            timestamp: Date.now()
+                        });
+                        
+                        io.to(roomId).emit('gameUpdate', game);
+                        io.to(roomId).emit('newMessage', game.messages);
+                    }
                 }
             }
 
-            // 5分後に完全にプレイヤーを削除
+            // 5分後に完全にプレイヤーを削除（一時退出の場合は30分後）
+            const timeoutDuration = player?.tempLeft ? 30 * 60 * 1000 : 5 * 60 * 1000;
             setTimeout(() => {
                 const gameAfterTimeout = GameManager.get(roomId);
                 if (gameAfterTimeout) {
@@ -324,12 +452,20 @@ function setupSocketHandlers(io) {
                         io.emit('roomList', GameManager.getPublicRoomList());
                     }
                 }
-            }, 5 * 60 * 1000); // 5分
+            }, timeoutDuration);
         });
 
         socket.on('leaveRoom', () => {
             const roomId = socket.roomId;
             if (!roomId) return;
+            
+            // 観戦者の場合
+            if (socket.isSpectator) {
+                socket.leave(roomId);
+                socket.roomId = null;
+                socket.isSpectator = false;
+                return;
+            }
             
             const game = GameManager.get(roomId);
             if (!game) return;
@@ -367,7 +503,7 @@ function endRound(game, roomId, io) {
         if (game.currentRound > game.maxRounds) {
             game.gameState = 'finished';
             game.winningTeam = 'guardian';
-            game.victoryMessage = '4ラウンドが終了しました！財宝を守り切った守護者チームの勝利です！';
+            game.victoryMessage = '4ラウンドが終了しました！子供たちを隠し続けた豚男チームの勝利です！';
         } else {
             game.cardsPerPlayer = Math.max(1, 6 - game.currentRound);
             
@@ -407,7 +543,7 @@ function endRound(game, roomId, io) {
             } else {
                 game.gameState = 'finished';
                 game.winningTeam = 'guardian';
-                game.victoryMessage = 'カードが尽きました！守護者チームの勝利です！';
+                game.victoryMessage = 'カードが尽きました！豚男チームの勝利です！';
             }
         }
         io.to(roomId).emit('gameUpdate', game);
