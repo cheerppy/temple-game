@@ -139,7 +139,93 @@ class TreasureTempleGame {
                 const playerInfo = JSON.parse(savedPlayerInfo);
                 console.log('保存された情報で再接続を試行:', playerInfo);
                 
-                this.myName = playerName;
+                this.myName = playerInfo.playerName;
+                this.isHost = playerInfo.isHost;
+                UIManager.showPlayerName(this.myName);
+                
+                // 少し待ってから再接続を試行（Socket.io接続完了を待つ）
+                setTimeout(() => {
+                    this.socketClient.reconnectToRoom(playerInfo.roomId, playerInfo.playerName);
+                }, 1000);
+            }
+        } catch (error) {
+            console.error('再接続情報の読み込みエラー:', error);
+            localStorage.removeItem('pigGamePlayerInfo');
+            localStorage.removeItem('pigGameRejoinInfo');
+        }
+    }
+
+    // プレイヤー情報を保存
+    savePlayerInfo(playerInfo) {
+        try {
+            localStorage.setItem('pigGamePlayerInfo', JSON.stringify(playerInfo));
+            console.log('プレイヤー情報を保存:', playerInfo);
+        } catch (error) {
+            console.error('プレイヤー情報の保存エラー:', error);
+        }
+    }
+
+    // プレイヤー情報を削除
+    clearPlayerInfo() {
+        try {
+            localStorage.removeItem('pigGamePlayerInfo');
+            console.log('プレイヤー情報を削除');
+        } catch (error) {
+            console.error('プレイヤー情報の削除エラー:', error);
+        }
+    }
+
+    createRoom() {
+        const nameInput = document.getElementById('player-name-create');
+        const playerName = nameInput.value.trim() || `プレイヤー${Math.floor(Math.random() * 1000)}`;
+        const hasPassword = document.getElementById('use-password').checked;
+        const password = hasPassword ? document.getElementById('room-password').value : '';
+        
+        this.myName = playerName;
+        UIManager.showPlayerName(this.myName);
+        
+        this.socketClient.createRoom(playerName, hasPassword, password);
+    }
+
+    joinRoom() {
+        const nameInput = document.getElementById('player-name-join');
+        const roomInput = document.getElementById('room-id-input');
+        const passwordInput = document.getElementById('join-password');
+        
+        const playerName = nameInput.value.trim() || `プレイヤー${Math.floor(Math.random() * 1000)}`;
+        const roomId = roomInput.value.trim().toUpperCase();
+        const password = passwordInput.value;
+
+        if (!roomId) {
+            UIManager.showError('ルームIDを入力してください');
+            return;
+        }
+
+        this.myName = playerName;
+        UIManager.showPlayerName(this.myName);
+        this.roomId = roomId;
+        
+        this.socketClient.joinRoom(roomId, playerName, password);
+    }
+
+    rejoinRoom() {
+        const nameInput = document.getElementById('rejoin-player-name');
+        const roomInput = document.getElementById('rejoin-room-id');
+        
+        const playerName = nameInput.value.trim();
+        const roomId = roomInput.value.trim().toUpperCase();
+
+        if (!playerName) {
+            UIManager.showError('プレイヤー名を入力してください');
+            return;
+        }
+
+        if (!roomId) {
+            UIManager.showError('ルームIDを入力してください');
+            return;
+        }
+
+        this.myName = playerName;
         UIManager.showPlayerName(this.myName);
         this.roomId = roomId;
         
@@ -678,90 +764,4 @@ class TreasureTempleGame {
 document.addEventListener('DOMContentLoaded', () => {
     const game = new TreasureTempleGame();
     window.game = game;
-});Info.playerName;
-                this.isHost = playerInfo.isHost;
-                UIManager.showPlayerName(this.myName);
-                
-                // 少し待ってから再接続を試行（Socket.io接続完了を待つ）
-                setTimeout(() => {
-                    this.socketClient.reconnectToRoom(playerInfo.roomId, playerInfo.playerName);
-                }, 1000);
-            }
-        } catch (error) {
-            console.error('再接続情報の読み込みエラー:', error);
-            localStorage.removeItem('pigGamePlayerInfo');
-            localStorage.removeItem('pigGameRejoinInfo');
-        }
-    }
-
-    // プレイヤー情報を保存
-    savePlayerInfo(playerInfo) {
-        try {
-            localStorage.setItem('pigGamePlayerInfo', JSON.stringify(playerInfo));
-            console.log('プレイヤー情報を保存:', playerInfo);
-        } catch (error) {
-            console.error('プレイヤー情報の保存エラー:', error);
-        }
-    }
-
-    // プレイヤー情報を削除
-    clearPlayerInfo() {
-        try {
-            localStorage.removeItem('pigGamePlayerInfo');
-            console.log('プレイヤー情報を削除');
-        } catch (error) {
-            console.error('プレイヤー情報の削除エラー:', error);
-        }
-    }
-
-    createRoom() {
-        const nameInput = document.getElementById('player-name-create');
-        const playerName = nameInput.value.trim() || `プレイヤー${Math.floor(Math.random() * 1000)}`;
-        const hasPassword = document.getElementById('use-password').checked;
-        const password = hasPassword ? document.getElementById('room-password').value : '';
-        
-        this.myName = playerName;
-        UIManager.showPlayerName(this.myName);
-        
-        this.socketClient.createRoom(playerName, hasPassword, password);
-    }
-
-    joinRoom() {
-        const nameInput = document.getElementById('player-name-join');
-        const roomInput = document.getElementById('room-id-input');
-        const passwordInput = document.getElementById('join-password');
-        
-        const playerName = nameInput.value.trim() || `プレイヤー${Math.floor(Math.random() * 1000)}`;
-        const roomId = roomInput.value.trim().toUpperCase();
-        const password = passwordInput.value;
-
-        if (!roomId) {
-            UIManager.showError('ルームIDを入力してください');
-            return;
-        }
-
-        this.myName = playerName;
-        UIManager.showPlayerName(this.myName);
-        this.roomId = roomId;
-        
-        this.socketClient.joinRoom(roomId, playerName, password);
-    }
-
-    rejoinRoom() {
-        const nameInput = document.getElementById('rejoin-player-name');
-        const roomInput = document.getElementById('rejoin-room-id');
-        
-        const playerName = nameInput.value.trim();
-        const roomId = roomInput.value.trim().toUpperCase();
-
-        if (!playerName) {
-            UIManager.showError('プレイヤー名を入力してください');
-            return;
-        }
-
-        if (!roomId) {
-            UIManager.showError('ルームIDを入力してください');
-            return;
-        }
-
-        this.myName = player
+});
