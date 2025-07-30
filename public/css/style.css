@@ -76,6 +76,100 @@ body {
     border: 2px solid #FFD700;
 }
 
+/* 一時退出機能用スタイル */
+.temp-leave-section {
+    background: rgba(255, 165, 0, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    border: 2px solid rgba(255, 165, 0, 0.3);
+}
+
+.temp-leave-info {
+    margin-bottom: 15px;
+}
+
+.temp-leave-info h4 {
+    color: #FFA500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.temp-leave-info p {
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 4px 0;
+    color: #FFE4B5;
+}
+
+.temp-leave-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.temp-leave-buttons .btn {
+    flex: 1;
+}
+
+/* ゲーム中退出ボタン */
+.game-leave-section {
+    text-align: center;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(220, 20, 60, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(220, 20, 60, 0.3);
+}
+
+.game-leave-section .btn {
+    width: auto;
+    min-width: 120px;
+}
+
+/* 再入場セクション用スタイル */
+.control-section:has(#rejoin-room) {
+    background: rgba(34, 139, 34, 0.1);
+    border-color: rgba(34, 139, 34, 0.3);
+}
+
+.control-section:has(#rejoin-room) h3 {
+    color: #32CD32;
+}
+
+/* 観戦者用スタイル */
+.spectator-mode {
+    background: rgba(128, 0, 128, 0.1);
+    border: 2px solid rgba(128, 0, 128, 0.3);
+}
+
+.spectator-indicator {
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    background: rgba(128, 0, 128, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    z-index: 100;
+    font-size: 12px;
+}
+
+.spectator-controls {
+    background: rgba(128, 0, 128, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px solid rgba(128, 0, 128, 0.3);
+}
+
+.spectator-info {
+    text-align: center;
+    color: #DDA0DD;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
 /* ボタンスタイル */
 .btn {
     background: linear-gradient(45deg, #04384c, #065a7a);
@@ -406,7 +500,7 @@ body {
     flex-wrap: wrap;
 }
 
-/* 進捗アイコンの修正版 - 画像とフォールバック両対応 */
+/* 進捗アイコンの修正版 - 豚のアイコンを使用 */
 .progress-icon {
     width: 32px;
     height: 32px;
@@ -424,38 +518,32 @@ body {
     overflow: hidden;
 }
 
-/* 財宝アイコン */
+/* 子供（豚）アイコン */
 .progress-icon.treasure {
-    background-image: url('/images/treasure-icon-active.png');
-    background-color: linear-gradient(135deg, #FFD700, #FFA500);
-    border-color: #FFD700;
+    background-color: #FFB6C1;
+    border-color: #FF69B4;
 }
 
 .progress-icon.treasure.used {
-    background-image: url('/images/treasure-icon-inactive.png');
-    background-color: #555;
-    opacity: 0.4;
-    border-color: #666;
+    background-color: #32CD32;
+    border-color: #228B22;
 }
 
 /* 罠アイコン */
 .progress-icon.trap {
-    background-image: url('/images/trap-icon-active.png');
     background-color: linear-gradient(135deg, #8B0000, #DC143C);
     border-color: #8B0000;
 }
 
 .progress-icon.trap.used {
-    background-image: url('/images/trap-icon-inactive.png');
     background-color: #333;
     opacity: 0.4;
     border-color: #444;
 }
 
-/* 画像が読み込めない場合のフォールバック（絵文字表示） */
-.progress-icon.treasure:not([style*="background-image"])::before,
-.progress-icon.treasure.no-image::before {
-    content: '💰';
+/* 絵文字表示 */
+.progress-icon.treasure::before {
+    content: '🐷';
     font-size: 18px;
     position: absolute;
     top: 50%;
@@ -463,19 +551,16 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.progress-icon.treasure.used:not([style*="background-image"])::before,
-.progress-icon.treasure.used.no-image::before {
-    content: '💰';
+.progress-icon.treasure.used::before {
+    content: '👶';
     font-size: 18px;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    filter: grayscale(100%) brightness(0.7);
 }
 
-.progress-icon.trap:not([style*="background-image"])::before,
-.progress-icon.trap.no-image::before {
+.progress-icon.trap::before {
     content: '💀';
     font-size: 18px;
     position: absolute;
@@ -484,8 +569,7 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.progress-icon.trap.used:not([style*="background-image"])::before,
-.progress-icon.trap.used.no-image::before {
+.progress-icon.trap.used::before {
     content: '💀';
     font-size: 18px;
     position: absolute;
@@ -506,7 +590,7 @@ body {
 }
 
 .progress-icon.emoji-only.treasure::before {
-    content: '💰';
+    content: '🐷';
 }
 
 .progress-icon.emoji-only.trap::before {
@@ -650,8 +734,8 @@ body {
 
 .my-cards-grid.mobile-optimized {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
     max-width: 100%;
 }
 
@@ -663,10 +747,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1em;
+    font-size: 0.8em;
     font-weight: bold;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    min-height: 80px;
+    min-height: 60px;
     position: relative;
 }
 
@@ -969,7 +1053,8 @@ body {
     }
     
     .my-cards-grid.mobile-optimized {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
     }
     
     .other-player-cards {
@@ -1027,8 +1112,8 @@ body {
     }
     
     .my-cards-grid.mobile-optimized {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
     }
     
     .other-player-cards {
@@ -1054,11 +1139,6 @@ body {
     .progress-icon::before {
         font-size: 14px !important;
     }
-}
-
-/* ダークモード対応（システム設定に応じて） */
-@media (prefers-color-scheme: dark) {
-    /* 既に暗い背景なので、特別な調整は不要 */
 }
 
 /* 高コントラスト対応 */
