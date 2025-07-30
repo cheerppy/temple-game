@@ -1,7 +1,7 @@
 {
   "name": "pig-house-temple-game",
   "version": "1.0.0",
-  "description": "豚小屋に入らずんば子豚を得ず - 恐怖の豚男",
+  "description": "豚小屋探検隊 - 豚小屋に入らずんば子豚を得ず",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
