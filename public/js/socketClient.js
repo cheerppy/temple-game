@@ -84,6 +84,16 @@ class SocketClient {
             this.game.onJoinSuccess(data);
         });
 
+        // 再入場成功
+        this.socket.on('rejoinSuccess', (data) => {
+            this.game.onRejoinSuccess(data);
+        });
+
+        // 観戦成功
+        this.socket.on('spectateSuccess', (data) => {
+            this.game.onSpectateSuccess(data);
+        });
+
         // 再接続成功
         this.socket.on('reconnectSuccess', (data) => {
             this.game.onReconnectSuccess(data);
@@ -122,6 +132,21 @@ class SocketClient {
                 UIManager.showError(`接続エラー (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             }
         });
+    }
+
+    // 再入場用メソッド
+    rejoinRoom(roomId, playerName) {
+        this.emit('rejoinRoom', { roomId, playerName });
+    }
+
+    // 一時退出用メソッド
+    tempLeaveRoom() {
+        this.emit('tempLeaveRoom');
+    }
+
+    // 観戦用メソッド
+    spectateRoom(roomId, spectatorName) {
+        this.emit('spectateRoom', { roomId, spectatorName });
     }
 
     // Socket.io通信メソッド
