@@ -3,7 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豚小屋に入らずんば子豚を得ず - 恐怖の豚男</title>
+    <title>豚小屋探検隊 - 豚小屋に入らずんば子豚を得ず</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    
+    <!-- Meta Tags for Social Media -->
+    <meta name="description" content="村から誘拐された子供たちを救出せよ！豚男の呪いで豚に変えられた子供たちを見つけ出す協力型推理ゲーム">
+    <meta property="og:title" content="豚小屋探検隊">
+    <meta property="og:description" content="村から誘拐された子供たちを救出せよ！豚男の呪いで豚に変えられた子供たちを見つけ出す協力型推理ゲーム">
+    <meta property="og:image" content="/images/game-banner.jpg">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="豚小屋探検隊">
+    <meta name="twitter:description" content="村から誘拐された子供たちを救出せよ！">
+    <meta name="twitter:image" content="/images/game-banner.jpg">
     
     <!-- Socket.io CDN -->
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
@@ -17,8 +34,8 @@
     
     <div class="container">
         <div class="header">
-            <h1>🐷 豚小屋に入らずんば子豚を得ず 🐷</h1>
-            <p class="subtitle">恐怖の豚男</p>
+            <h1>🐷 豚小屋探検隊 🐷</h1>
+            <p class="subtitle">豚小屋に入らずんば子豚を得ず</p>
         </div>
 
         <div id="error-message" class="error-message"></div>
@@ -59,6 +76,32 @@
                     </div>
                     <button id="join-room" class="btn">ルームに参加</button>
                 </div>
+
+                <div class="control-section">
+                    <h3>ゲーム中のルームに再入場</h3>
+                    <div class="input-group">
+                        <label for="rejoin-player-name">プレイヤー名:</label>
+                        <input type="text" id="rejoin-player-name" placeholder="元の名前を入力">
+                    </div>
+                    <div class="input-group">
+                        <label for="rejoin-room-id">ルームID:</label>
+                        <input type="text" id="rejoin-room-id" placeholder="ルームIDを入力">
+                    </div>
+                    <button id="rejoin-room" class="btn">ゲームに再入場</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>観戦モード</h3>
+                    <div class="input-group">
+                        <label for="spectator-name">観戦者名:</label>
+                        <input type="text" id="spectator-name" placeholder="名前を入力">
+                    </div>
+                    <div class="input-group">
+                        <label for="spectate-room-id">ルームID:</label>
+                        <input type="text" id="spectate-room-id" placeholder="ルームIDを入力">
+                    </div>
+                    <button id="spectate-room" class="btn">観戦する</button>
+                </div>
             </div>
 
             <div class="room-list">
@@ -72,8 +115,9 @@
                 <div class="rule-toggle">
                     <button id="toggle-rules" class="btn btn-small">ルールを表示</button>
                     <ul id="game-rules" class="rules-list" style="display: none;">
-                        <li>探検家チーム：財宝を7個すべて見つけることが目標</li>
-                        <li>守護者チーム：罠を2個（10人プレイ時は3個）すべて発動させるか、4ラウンド終了まで財宝を守ることが目標</li>
+                        <li><strong>ストーリー</strong>：豚男という怪物が村の子供たちを誘拐し、豚の姿に変えてしまいました</li>
+                        <li><strong>探検家チーム</strong>：豚に変えられた子供を7人すべて救出することが目標</li>
+                        <li><strong>豚男チーム</strong>：罠を2個（10人プレイ時は3個）すべて発動させるか、4ラウンド終了まで子供たちを守る（隠す）ことが目標</li>
                         <li>各プレイヤーには最初5枚のカードが配られます</li>
                         <li>自分のカードの内訳は分かりますが、位置は分かりません</li>
                         <li>鍵を持った人が、他のプレイヤーのカードを1枚選んで公開します</li>
@@ -98,6 +142,19 @@
             <div class="room-buttons">
                 <button id="start-game" class="btn btn-primary" style="display: none;">ゲーム開始 (3人以上必要)</button>
                 <button id="leave-room" class="btn btn-secondary">ルームを退出</button>
+            </div>
+
+            <!-- プレイ中退出機能 -->
+            <div class="temp-leave-section" id="temp-leave-section" style="display: none;">
+                <div class="temp-leave-info">
+                    <h4>⚠️ ゲーム中の一時退出</h4>
+                    <p>ゲーム中ですが、一時的に退出できます。</p>
+                    <p>プレイヤー名とルームIDを覚えておけば、後で再入場可能です。</p>
+                </div>
+                <div class="temp-leave-buttons">
+                    <button id="temp-leave-room" class="btn btn-secondary">一時退出</button>
+                    <button id="cancel-temp-leave" class="btn">キャンセル</button>
+                </div>
             </div>
         </div>
 
@@ -125,7 +182,7 @@
             <!-- 進捗バー -->
             <div class="progress-bars">
                 <div class="treasure-progress">
-                    <span>財宝</span>
+                    <span>救出</span>
                     <div id="treasure-icons" class="icon-row"></div>
                 </div>
                 <div class="trap-progress">
@@ -142,7 +199,7 @@
                         <span class="value"><span id="current-round">1</span>/4</span>
                     </div>
                     <div class="info-item">
-                        <span class="label">💰</span>
+                        <span class="label">🐷</span>
                         <span class="value"><span id="treasure-found">0</span>/<span id="treasure-goal">7</span></span>
                     </div>
                     <div class="info-item">
@@ -184,7 +241,7 @@
             <div class="my-cards-section">
                 <div class="section-header">
                     <h3>あなたのカード</h3>
-                    <p class="card-info">財宝 <span id="my-treasure">0</span> / 罠 <span id="my-trap">0</span> / 空き <span id="my-empty">0</span></p>
+                    <p class="card-info">子供 <span id="my-treasure">0</span> / 罠 <span id="my-trap">0</span> / 空き <span id="my-empty">0</span></p>
                 </div>
                 <div id="my-cards-grid" class="my-cards-grid mobile-optimized"></div>
             </div>
@@ -193,6 +250,11 @@
             <div class="other-players-section">
                 <h3>他のプレイヤー</h3>
                 <div id="other-players-container"></div>
+            </div>
+
+            <!-- ゲーム中の退出ボタン -->
+            <div class="game-leave-section">
+                <button id="game-leave-room" class="btn btn-secondary btn-small">一時退出</button>
             </div>
 
             <!-- チャット -->
