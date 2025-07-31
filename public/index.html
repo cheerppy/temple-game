@@ -35,6 +35,16 @@
             background: #d4edda;
             border: 1px solid #c3e6cb;
         }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
     </style>
 </head>
 <body>
@@ -48,6 +58,7 @@
         <div>
             <button class="btn" onclick="testConnection()">接続テスト</button>
             <button class="btn" onclick="testVibration()">バイブレーションテスト</button>
+            <button class="btn" onclick="testGameStart()">ゲーム機能テスト</button>
         </div>
         
         <div style="margin-top: 20px;">
@@ -56,71 +67,133 @@
                 <li>ブラウザ: <span id="browser-info">-</span></li>
                 <li>Socket.io: <span id="socket-status">未接続</span></li>
                 <li>バイブレーション: <span id="vibration-support">-</span></li>
+                <li>サーバー: <span id="server-status">未確認</span></li>
             </ul>
         </div>
         
         <div style="margin-top: 20px;">
             <h3>簡易ルーム作成テスト:</h3>
-            <input type="text" id="player-name" placeholder="プレイヤー名" style="padding: 8px; margin: 5px;">
+            <input type="text" id="player-name" placeholder="プレイヤー名" style="padding: 8px; margin: 5px;" value="テストプレイヤー">
             <button class="btn" onclick="createTestRoom()">テストルーム作成</button>
             <div id="room-result" style="margin-top: 10px;"></div>
         </div>
+
+        <div style="margin-top: 20px;">
+            <h3>ログ:</h3>
+            <div id="log-container" style="height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;"></div>
+        </div>
     </div>
 
-    <!-- Socket.io -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.io CDN版 -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     
     <script>
-        // デバッグ情報の表示
+        // ログ機能
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(message);
+        }
+
+        // 初期化
+        log('ページ読み込み完了');
         document.getElementById('browser-info').textContent = navigator.userAgent.split(' ').pop();
         document.getElementById('vibration-support').textContent = 'vibrate' in navigator ? '対応' : '非対応';
         document.getElementById('status-text').textContent = 'ページ読み込み完了';
+        
+        // Socket.io確認
+        if (typeof io !== 'undefined') {
+            log('Socket.io ライブラリ読み込み成功', 'success');
+            document.getElementById('server-status').textContent = 'ライブラリ読み込み済み';
+        } else {
+            log('Socket.io ライブラリ読み込み失敗', 'error');
+            document.getElementById('server-status').textContent = 'ライブラリ読み込み失敗';
+        }
         
         let socket = null;
         
         function testConnection() {
             const statusEl = document.getElementById('socket-status');
             const statusText = document.getElementById('status-text');
+            const statusDiv = document.getElementById('status');
+            
+            log('接続テスト開始');
+            
+            if (typeof io === 'undefined') {
+                log('Socket.io ライブラリが見つかりません', 'error');
+                statusText.textContent = 'Socket.ioライブラリエラー';
+                statusDiv.className = 'error';
+                return;
+            }
             
             if (socket) {
                 socket.disconnect();
+                log('既存の接続を切断');
             }
             
             statusText.textContent = 'Socket.io接続中...';
+            statusDiv.className = '';
             
-            socket = io({
-                transports: ['websocket', 'polling'],
-                reconnection: false,
-                timeout: 5000
-            });
-            
-            socket.on('connect', () => {
-                statusEl.textContent = '接続成功 - ID: ' + socket.id;
-                statusText.textContent = 'サーバー接続成功！';
-                console.log('Socket.io接続成功:', socket.id);
-            });
-            
-            socket.on('connect_error', (error) => {
-                statusEl.textContent = '接続エラー: ' + error.message;
-                statusText.textContent = 'サーバー接続失敗';
-                console.error('Socket.io接続エラー:', error);
-            });
-            
-            socket.on('disconnect', () => {
-                statusEl.textContent = '切断';
-                statusText.textContent = 'サーバーから切断';
-                console.log('Socket.io切断');
-            });
+            try {
+                socket = io({
+                    transports: ['websocket', 'polling'],
+                    reconnection: false,
+                    timeout: 10000
+                });
+                
+                socket.on('connect', () => {
+                    statusEl.textContent = '接続成功 - ID: ' + socket.id;
+                    statusText.textContent = 'サーバー接続成功！';
+                    statusDiv.className = 'success';
+                    log('Socket.io接続成功: ' + socket.id, 'success');
+                });
+                
+                socket.on('connect_error', (error) => {
+                    statusEl.textContent = '接続エラー: ' + error.message;
+                    statusText.textContent = 'サーバー接続失敗';
+                    statusDiv.className = 'error';
+                    log('Socket.io接続エラー: ' + error.message, 'error');
+                });
+                
+                socket.on('disconnect', (reason) => {
+                    statusEl.textContent = '切断: ' + reason;
+                    statusText.textContent = 'サーバーから切断';
+                    statusDiv.className = 'error';
+                    log('Socket.io切断: ' + reason, 'error');
+                });
+
+                socket.on('roomList', (rooms) => {
+                    log('ルーム一覧受信: ' + rooms.length + '個', 'success');
+                });
+
+                socket.on('ongoingGames', (games) => {
+                    log('進行中ゲーム一覧受信: ' + games.length + '個', 'success');
+                });
+                
+            } catch (error) {
+                log('Socket.io初期化エラー: ' + error.message, 'error');
+                statusText.textContent = 'Socket.io初期化エラー';
+                statusDiv.className = 'error';
+            }
         }
         
         function testVibration() {
             if ('vibrate' in navigator) {
-                navigator.vibrate([100, 50, 100]);
-                document.getElementById('status-text').textContent = 'バイブレーションテスト実行';
-                console.log('バイブレーションテスト実行');
+                try {
+                    const result = navigator.vibrate([100, 50, 100]);
+                    document.getElementById('status-text').textContent = 'バイブレーションテスト実行: ' + result;
+                    log('バイブレーションテスト実行: ' + result, 'success');
+                } catch (error) {
+                    log('バイブレーションエラー: ' + error.message, 'error');
+                }
             } else {
                 document.getElementById('status-text').textContent = 'バイブレーション非対応';
-                console.log('バイブレーション非対応');
+                log('バイブレーション非対応', 'error');
             }
         }
         
@@ -128,8 +201,11 @@
             const playerName = document.getElementById('player-name').value.trim() || 'テストプレイヤー';
             const resultEl = document.getElementById('room-result');
             
+            log('ルーム作成テスト開始: ' + playerName);
+            
             if (!socket || !socket.connected) {
                 resultEl.innerHTML = '<span style="color: red;">エラー: まず接続テストを実行してください</span>';
+                log('ルーム作成失敗: Socket未接続', 'error');
                 return;
             }
             
@@ -143,17 +219,58 @@
             
             socket.once('roomCreated', (data) => {
                 resultEl.innerHTML = `<span style="color: green;">成功! ルームID: <strong>${data.roomId}</strong></span>`;
-                console.log('ルーム作成成功:', data);
+                log('ルーム作成成功: ID=' + data.roomId, 'success');
             });
             
             socket.once('error', (error) => {
                 resultEl.innerHTML = `<span style="color: red;">エラー: ${error.message}</span>`;
-                console.error('ルーム作成エラー:', error);
+                log('ルーム作成エラー: ' + error.message, 'error');
             });
+
+            // タイムアウト処理
+            setTimeout(() => {
+                if (resultEl.innerHTML.includes('作成中')) {
+                    resultEl.innerHTML = '<span style="color: red;">タイムアウト: サーバーからの応答がありません</span>';
+                    log('ルーム作成タイムアウト', 'error');
+                }
+            }, 5000);
+        }
+
+        function testGameStart() {
+            log('ゲーム機能テスト開始');
+            
+            // UIManagerの存在確認
+            if (typeof UIManager !== 'undefined') {
+                log('UIManager 利用可能', 'success');
+            } else {
+                log('UIManager 未定義', 'error');
+            }
+
+            // TreasureTempleGameの存在確認
+            if (typeof TreasureTempleGame !== 'undefined') {
+                log('TreasureTempleGame 利用可能', 'success');
+            } else {
+                log('TreasureTempleGame 未定義', 'error');
+            }
+
+            // CSS確認
+            const testEl = document.createElement('div');
+            testEl.className = 'btn';
+            document.body.appendChild(testEl);
+            const styles = window.getComputedStyle(testEl);
+            if (styles.backgroundColor === 'rgb(0, 123, 255)') {
+                log('CSS正常読み込み', 'success');
+            } else {
+                log('CSS読み込み問題の可能性', 'error');
+            }
+            document.body.removeChild(testEl);
         }
         
         // 自動接続テスト
-        setTimeout(testConnection, 1000);
+        setTimeout(() => {
+            log('3秒後に自動接続テスト開始');
+            testConnection();
+        }, 3000);
     </script>
 </body>
 </html>
