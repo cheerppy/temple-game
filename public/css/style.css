@@ -126,8 +126,105 @@ body {
     min-width: 120px;
 }
 
-/* 再入場セクション用スタイル */
-.control-section:has(#rejoin-room) {
+/* ゲーム中ルームID表示 */
+.game-room-id {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 215, 0, 0.9);
+    color: #04384c;
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    z-index: 100;
+    font-size: 12px;
+    border: 2px solid #FFD700;
+}
+
+/* 進行中ゲーム一覧 */
+.ongoing-games {
+    background: rgba(34, 139, 34, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    border: 2px solid rgba(34, 139, 34, 0.3);
+}
+
+.ongoing-games h3 {
+    color: #32CD32;
+    margin-bottom: 15px;
+}
+
+.ongoing-game-item {
+    background: rgba(34, 139, 34, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(34, 139, 34, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.ongoing-game-item:hover {
+    background: rgba(34, 139, 34, 0.3);
+    transform: translateX(5px);
+}
+
+.ongoing-game-info {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.ongoing-game-item .btn {
+    width: 100%;
+    background: linear-gradient(45deg, #228B22, #32CD32);
+}
+
+/* プレイヤー名入力モーダル */
+.name-input-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1500;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.name-input-content {
+    background: linear-gradient(135deg, #04384c, #022838);
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 400px;
+    width: 100%;
+    border: 2px solid #87CEEB;
+}
+
+.name-input-content h3 {
+    color: #87CEEB;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.name-input-content .input-group {
+    margin-bottom: 20px;
+}
+
+.name-input-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.name-input-buttons .btn {
+    flex: 1;
+}
     background: rgba(34, 139, 34, 0.1);
     border-color: rgba(34, 139, 34, 0.3);
 }
@@ -136,8 +233,8 @@ body {
     color: #32CD32;
 }
 
-/* 観戦者用スタイル */
-.spectator-mode {
+/* 再入場セクション用スタイル */
+.control-section:has(#rejoin-room) {
     background: rgba(128, 0, 128, 0.1);
     border: 2px solid rgba(128, 0, 128, 0.3);
 }
@@ -170,8 +267,8 @@ body {
     margin-bottom: 10px;
 }
 
-/* ボタンスタイル */
-.btn {
+/* 観戦者用スタイル */
+.spectator-mode {
     background: linear-gradient(45deg, #04384c, #065a7a);
     color: white;
     border: none;
@@ -213,8 +310,8 @@ body {
     background: linear-gradient(45deg, #8B0000, #DC143C);
 }
 
-/* ロビー画面 */
-.lobby {
+/* ボタンスタイル */
+.btn {
     background: rgba(4, 56, 76, 0.3);
     padding: 15px;
     border-radius: 10px;
@@ -813,8 +910,8 @@ body {
 
 .other-player-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
 }
 
 .other-card {
@@ -827,9 +924,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2em;
+    font-size: 0.8em;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-    min-height: 60px;
+    min-height: 45px;
 }
 
 .other-card:hover:not(.revealed):not(.disabled) {
@@ -1058,7 +1155,8 @@ body {
     }
     
     .other-player-cards {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
     }
     
     .card, .other-card {
@@ -1117,8 +1215,8 @@ body {
     }
     
     .other-player-cards {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
     }
     
     .card, .other-card {
