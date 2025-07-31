@@ -7,35 +7,52 @@ class TreasureTempleGame {
         this.mySocketId = null;
         this.myName = null;
         this.isSpectator = false;
-        this.vibrationEnabled = true;
+        this.vibrationEnabled = false;
+        this.userInteracted = false;
         
         this.socketClient = new SocketClient(this);
         this.initializeEventListeners();
         this.initializeErrorMonitoring();
-        this.checkVibrationSupport();
+        this.initializeVibration();
         
         // ページ読み込み時に再接続を試行
         this.attemptReconnection();
     }
 
-    // バイブレーション対応チェック
-    checkVibrationSupport() {
-        if ('vibrate' in navigator) {
-            console.log('バイブレーション機能が利用可能です');
-            this.vibrationEnabled = true;
-            
-            // テスト用バイブレーション
-            this.vibrate([50]);
-        } else {
-            console.log('バイブレーション機能は利用できません');
+    // バイブレーション初期化（ユーザーインタラクション後に有効化）
+    initializeVibration() {
+        // ユーザーの最初のクリックを検出
+        const enableVibrationOnFirstClick = () => {
+            if (!this.userInteracted && 'vibrate' in navigator) {
+                this.userInteracted = true;
+                this.vibrationEnabled = true;
+                console.log('バイブレーション機能を有効化しました');
+                
+                // テスト用の軽いバイブレーション
+                try {
+                    navigator.vibrate(50);
+                } catch (error) {
+                    console.warn('バイブレーションテストに失敗:', error);
+                    this.vibrationEnabled = false;
+                }
+            }
+        };
+
+        // 各種ユーザーインタラクションイベントを監視
+        ['click', 'touchstart', 'keydown'].forEach(eventType => {
+            document.addEventListener(eventType, enableVibrationOnFirstClick, { once: true });
+        });
+
+        if (!('vibrate' in navigator)) {
+            console.log('このデバイスはバイブレーション機能をサポートしていません');
             this.vibrationEnabled = false;
         }
     }
 
-    // 強化されたバイブレーション機能
+    // 安全なバイブレーション機能
     vibrate(pattern) {
-        if (!this.vibrationEnabled || !navigator.vibrate) {
-            console.log('バイブレーション無効またはサポートされていません');
+        // バイブレーション機能が無効の場合は何もしない
+        if (!this.vibrationEnabled || !this.userInteracted || !navigator.vibrate) {
             return false;
         }
 
@@ -43,33 +60,41 @@ class TreasureTempleGame {
             // パターンを配列として正規化
             const normalizedPattern = Array.isArray(pattern) ? pattern : [pattern];
             
-            // バイブレーションを実行
-            const result = navigator.vibrate(normalizedPattern);
-            console.log('バイブレーション実行:', result, 'パターン:', normalizedPattern);
+            // 長すぎるパターンを制限（一部のブラウザで問題を起こす可能性）
+            const limitedPattern = normalizedPattern.slice(0, 10);
             
-            // モバイルでのユーザーインタラクション後にのみ動作する場合がある
-            if (!result) {
-                console.warn('バイブレーションの実行に失敗しました');
+            // バイブレーションを実行
+            const result = navigator.vibrate(limitedPattern);
+            
+            if (result) {
+                console.log('バイブレーション成功:', limitedPattern);
+            } else {
+                console.log('バイブレーション実行が拒否されました');
             }
             
             return result;
         } catch (error) {
-            console.error('バイブレーションエラー:', error);
+            console.warn('バイブレーションエラー:', error);
+            // エラーが発生した場合は機能を無効化
+            this.vibrationEnabled = false;
             return false;
         }
     }
 
-    // カードタイプ別のバイブレーションパターン
+    // カードタイプ別のバイブレーションパターン（短縮版）
     getVibrationPattern(cardType) {
         const patterns = {
-            treasure: [100, 50, 100], // 短い成功パターン
-            trap: [200, 100, 200, 100, 200], // 警告パターン
+            treasure: [100], // 短い成功パターン
+            trap: [200, 100, 200], // 警告パターン（短縮）
             empty: [50], // 軽い単発
-            victory_adventurer: [200, 100, 200, 100, 200, 100, 300], // 勝利パターン
-            victory_guardian: [100, 50, 100, 50, 100, 50, 500], // 勝利パターン
+            victory_adventurer: [200, 100, 200], // 勝利パターン（短縮）
+            victory_guardian: [100, 50, 100], // 勝利パターン（短縮）
             turn_start: [80], // ターン開始
-            round_start: [150, 100, 150], // ラウンド開始
-            error: [300, 200, 300] // エラー
+            round_start: [150], // ラウンド開始（短縮）
+            error: [300], // エラー（短縮）
+            button_click: [30], // ボタンクリック
+            success: [100], // 成功
+            warning: [150] // 警告
         };
         
         return patterns[cardType] || [50];
@@ -150,21 +175,21 @@ class TreasureTempleGame {
             });
         }
 
-        // ボタンイベントリスナー
+        // ボタンイベントリスナー（バイブレーション付き）
         const buttonEvents = {
-            'create-room': () => this.createRoom(),
-            'join-room': () => this.joinRoom(),
-            'rejoin-room': () => this.rejoinRoom(),
-            'spectate-room': () => this.spectateRoom(),
-            'leave-room': () => this.leaveRoom(),
-            'temp-leave-room': () => this.tempLeaveRoom(),
-            'cancel-temp-leave': () => this.cancelTempLeave(),
-            'game-leave-room': () => this.showTempLeaveDialog(),
-            'start-game': () => this.startGame(),
-            'return-to-lobby': () => this.returnToLobby(),
-            'refresh-rooms': () => this.socketClient.getRoomList(),
-            'refresh-ongoing': () => this.socketClient.getOngoingGames(),
-            'send-chat': () => this.sendChat()
+            'create-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.createRoom(); },
+            'join-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.joinRoom(); },
+            'rejoin-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.rejoinRoom(); },
+            'spectate-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.spectateRoom(); },
+            'leave-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.leaveRoom(); },
+            'temp-leave-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.tempLeaveRoom(); },
+            'cancel-temp-leave': () => { this.vibrate(this.getVibrationPattern('button_click')); this.cancelTempLeave(); },
+            'game-leave-room': () => { this.vibrate(this.getVibrationPattern('button_click')); this.showTempLeaveDialog(); },
+            'start-game': () => { this.vibrate(this.getVibrationPattern('button_click')); this.startGame(); },
+            'return-to-lobby': () => { this.vibrate(this.getVibrationPattern('button_click')); this.returnToLobby(); },
+            'refresh-rooms': () => { this.vibrate(this.getVibrationPattern('button_click')); this.socketClient.getRoomList(); },
+            'refresh-ongoing': () => { this.vibrate(this.getVibrationPattern('button_click')); this.socketClient.getOngoingGames(); },
+            'send-chat': () => { this.vibrate(this.getVibrationPattern('button_click')); this.sendChat(); }
         };
 
         Object.entries(buttonEvents).forEach(([id, handler]) => {
@@ -178,7 +203,10 @@ class TreasureTempleGame {
         const chatInput = document.getElementById('chat-input');
         if (chatInput) {
             chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.sendChat();
+                if (e.key === 'Enter') {
+                    this.vibrate(this.getVibrationPattern('button_click'));
+                    this.sendChat();
+                }
             });
         }
 
@@ -259,7 +287,6 @@ class TreasureTempleGame {
         UIManager.showPlayerName(this.myName);
         
         this.socketClient.createRoom(playerName, hasPassword, password);
-        this.vibrate([100]);
     }
 
     joinRoom() {
@@ -282,7 +309,6 @@ class TreasureTempleGame {
         this.roomId = roomId;
         
         this.socketClient.joinRoom(roomId, playerName, password);
-        this.vibrate([100]);
     }
 
     rejoinRoom() {
@@ -309,7 +335,6 @@ class TreasureTempleGame {
         this.roomId = roomId;
         
         this.socketClient.rejoinRoom(roomId, playerName);
-        this.vibrate([100]);
     }
 
     spectateRoom() {
@@ -331,7 +356,6 @@ class TreasureTempleGame {
         this.roomId = roomId;
         
         this.socketClient.spectateRoom(roomId, spectatorName);
-        this.vibrate([100]);
     }
 
     // 一時退出ダイアログを表示
@@ -390,7 +414,7 @@ class TreasureTempleGame {
         this.populateRejoinInfo(rejoinInfo);
         
         UIManager.showError('一時退出しました。同じプレイヤー名とルームIDで再入場できます。', 'warning');
-        this.vibrate([200, 100, 200]);
+        this.vibrate(this.getVibrationPattern('warning'));
     }
 
     // 再入場情報をUIに自動入力
@@ -410,7 +434,7 @@ class TreasureTempleGame {
         
         this.savePlayerInfo(data.playerInfo);
         this.showRoomInfo();
-        this.vibrate([100, 50, 100]);
+        this.vibrate(this.getVibrationPattern('success'));
     }
 
     // ルーム参加成功時
@@ -421,7 +445,7 @@ class TreasureTempleGame {
         
         this.savePlayerInfo(data.playerInfo);
         this.updateUI();
-        this.vibrate([100, 50, 100]);
+        this.vibrate(this.getVibrationPattern('success'));
     }
 
     // 観戦成功時
@@ -432,7 +456,7 @@ class TreasureTempleGame {
         
         UIManager.showSpectatorMode(true);
         this.updateUI();
-        this.vibrate([50, 50, 50]);
+        this.vibrate([50]); // 軽いフィードバック
     }
 
     // 再入場成功時
@@ -450,7 +474,7 @@ class TreasureTempleGame {
         
         UIManager.showError('ゲームに再入場しました！', 'success');
         this.updateUI();
-        this.vibrate([150, 100, 150]);
+        this.vibrate(this.getVibrationPattern('success'));
     }
 
     // 再接続成功時
@@ -462,7 +486,7 @@ class TreasureTempleGame {
         
         UIManager.showError('ゲームに再接続しました！', 'success');
         this.updateUI();
-        this.vibrate([150, 100, 150]);
+        this.vibrate(this.getVibrationPattern('success'));
     }
 
     showRoomInfo() {
@@ -704,31 +728,13 @@ class TreasureTempleGame {
                     emoji.style.fontSize = '1.5em';
                     emoji.style.textAlign = 'center';
                     emoji.style.lineHeight = '1';
-                    switch (card.type) {
-                        case 'treasure':
-                            emoji.textContent = '🐷';
-                            break;
-                        case 'trap':
-                            emoji.textContent = '💀';
-                            break;
-                        case 'empty':
-                            emoji.textContent = '🏠';
-                            break;
-                    }
-                    cardDiv.appendChild(emoji);
-                } else {
-                    const emoji = document.createElement('div');
-                    emoji.textContent = '❓';
-                    emoji.style.fontSize = '1.5em';
-                    emoji.style.textAlign = 'center';
-                    emoji.style.lineHeight = '1';
                     cardDiv.appendChild(emoji);
                     
                     if (isMyTurn && !card.revealed && player.connected && !this.isSpectator) {
                         cardDiv.style.cursor = 'pointer';
                         cardDiv.addEventListener('click', () => {
                             this.selectCard(player.id, index);
-                            this.vibrate([50]); // カード選択時のフィードバック
+                            this.vibrate([30]); // カード選択時のフィードバック
                         });
                     } else {
                         cardDiv.classList.add('disabled');
@@ -763,7 +769,6 @@ class TreasureTempleGame {
         
         this.socketClient.sendChat(message);
         input.value = '';
-        this.vibrate([30]); // チャット送信時の軽いフィードバック
     }
 
     startGame() {
@@ -788,7 +793,7 @@ class TreasureTempleGame {
         
         UIManager.showSpectatorMode(false);
         UIManager.showScreen('lobby');
-        this.vibrate([100]);
+        this.vibrate([50]);
     }
 
     returnToLobby() {
@@ -800,4 +805,22 @@ class TreasureTempleGame {
 document.addEventListener('DOMContentLoaded', () => {
     const game = new TreasureTempleGame();
     window.game = game;
-});
+});center';
+                    emoji.style.lineHeight = '1';
+                    switch (card.type) {
+                        case 'treasure':
+                            emoji.textContent = '🐷';
+                            break;
+                        case 'trap':
+                            emoji.textContent = '💀';
+                            break;
+                        case 'empty':
+                            emoji.textContent = '🏠';
+                            break;
+                    }
+                    cardDiv.appendChild(emoji);
+                } else {
+                    const emoji = document.createElement('div');
+                    emoji.textContent = '❓';
+                    emoji.style.fontSize = '1.5em';
+                    emoji.style.textAlign = '
