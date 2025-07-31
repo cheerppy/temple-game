@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>必須要素チェック</title>
+    <style>
+        .missing { color: red; }
+        .found { color: green; }
+        .check-item { margin: 5px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h2>DOM要素存在チェック</h2>
+    <div id="check-results"></div>
+    
+    <script>
+        // 必須要素のリスト
+        const requiredElements = [
+            // 基本画面
+            'lobby',
+            'room-info', 
+            'game-board',
+            'victory-screen',
+            
+            // エラー・ステータス表示
+            'error-message',
+            'connection-status',
+            'player-name-display',
+            'my-name',
+            
+            // ロビー関連
+            'player-name-create',
+            'player-name-join',
+            'room-id-input',
+            'use-password',
+            'room-password',
+            'join-password',
+            'create-room',
+            'join-room',
+            
+            // ルーム情報
+            'room-id-display',
+            'players-list',
+            'player-count',
+            'start-game',
+            'leave-room',
+            
+            // ゲーム画面
+            'current-round',
+            'treasure-found',
+            'treasure-goal',
+            'trap-triggered',
+            'trap-goal',
+            'key-holder-name',
+            'turn-message',
+            'my-cards-grid',
+            'other-players-container',
+            
+            // モーダル
+            'name-input-modal',
+            'modal-player-name',
+            'modal-join-btn',
+            'modal-cancel-btn'
+        ];
+        
+        function checkElements() {
+            const results = document.getElementById('check-results');
+            let html = '';
+            let foundCount = 0;
+            
+            requiredElements.forEach(id => {
+                const element = document.getElementById(id);
+                const status = element ? 'found' : 'missing';
+                const symbol = element ? '✅' : '❌';
+                
+                if (element) foundCount++;
+                
+                html += `<div class="check-item ${status}">${symbol} #${id}</div>`;
+            });
+            
+            const percentage = Math.round((foundCount / requiredElements.length) * 100);
+            
+            html = `
+                <div style="margin-bottom: 20px; padding: 10px; background: ${percentage > 50 ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
+                    <strong>チェック結果: ${foundCount}/${requiredElements.length} (${percentage}%)</strong>
+                </div>
+                ${html}
+            `;
+            
+            results.innerHTML = html;
+            
+            console.log(`DOM要素チェック完了: ${foundCount}/${requiredElements.length} 発見`);
+        }
+        
+        // ページ読み込み後にチェック実行
+        document.addEventListener('DOMContentLoaded', checkElements);
+        
+        // 手動チェック用
+        setTimeout(checkElements, 1000);
+    </script>
+</body>
+</html>
