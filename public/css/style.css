@@ -1,416 +1,14 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #04384c 0%, #022838 50%, #011825 100%);
-    color: #e8f4f8;
-    min-height: 100vh;
-    padding: 10px;
-    font-size: 14px;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* ヘッダー */
-.header {
-    text-align: center;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.header h1 {
-    font-size: clamp(1.5em, 4vw, 2.2em);
-    color: #FFD700;
-    text-shadow: 2px 2px 4px #04384c;
-    margin-bottom: 8px;
-    line-height: 1.2;
-}
-
-.subtitle {
-    font-size: clamp(1em, 3vw, 1.2em);
-    color: #DC143C;
-    font-style: italic;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-}
-
-/* 接続状態とプレイヤー名 */
-.connection-status, .player-name-display {
-    position: fixed;
-    top: 10px;
-    padding: 8px 15px;
-    border-radius: 15px;
-    font-weight: bold;
-    z-index: 100;
-    font-size: 12px;
-}
-
-.connection-status {
-    right: 10px;
-}
-
-.connection-status.connected {
-    background: rgba(34, 139, 34, 0.9);
-    color: white;
-}
-
-.connection-status.disconnected {
-    background: rgba(220, 20, 60, 0.9);
-    color: white;
-}
-
-.player-name-display {
-    left: 10px;
-    background: rgba(255, 215, 0, 0.2);
-    border: 2px solid #FFD700;
-}
-
-/* 一時退出機能用スタイル */
-.temp-leave-section {
-    background: rgba(255, 165, 0, 0.1);
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-    border: 2px solid rgba(255, 165, 0, 0.3);
-}
-
-.temp-leave-info {
-    margin-bottom: 15px;
-}
-
-.temp-leave-info h4 {
-    color: #FFA500;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.temp-leave-info p {
-    font-size: 12px;
-    line-height: 1.4;
-    margin: 4px 0;
-    color: #FFE4B5;
-}
-
-.temp-leave-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.temp-leave-buttons .btn {
-    flex: 1;
-}
-
-/* ゲーム中退出ボタン */
-.game-leave-section {
-    text-align: center;
-    margin: 15px 0;
-    padding: 10px;
-    background: rgba(220, 20, 60, 0.1);
-    border-radius: 8px;
-    border: 1px solid rgba(220, 20, 60, 0.3);
-}
-
-.game-leave-section .btn {
-    width: auto;
-    min-width: 120px;
-}
-
-/* ゲーム中ルームID表示 */
-.game-room-id {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 215, 0, 0.9);
-    color: #04384c;
-    padding: 8px 15px;
-    border-radius: 15px;
-    font-weight: bold;
-    z-index: 100;
-    font-size: 12px;
-    border: 2px solid #FFD700;
-}
-
-/* 進行中ゲーム一覧 */
-.ongoing-games {
-    background: rgba(34, 139, 34, 0.1);
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-    border: 2px solid rgba(34, 139, 34, 0.3);
-}
-
-.ongoing-games h3 {
-    color: #32CD32;
-    margin-bottom: 15px;
-}
-
-.ongoing-game-item {
-    background: rgba(34, 139, 34, 0.2);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(34, 139, 34, 0.3);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: all 0.3s ease;
-}
-
-.ongoing-game-item:hover {
-    background: rgba(34, 139, 34, 0.3);
-    transform: translateX(5px);
-}
-
-.ongoing-game-info {
-    flex: 1;
-    line-height: 1.4;
-}
-
-.ongoing-game-item .btn {
-    width: 100%;
-    background: linear-gradient(45deg, #228B22, #32CD32);
-}
-
-/* プレイヤー名入力モーダル */
-.name-input-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 1500;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.name-input-content {
-    background: linear-gradient(135deg, #04384c, #022838);
-    padding: 30px;
-    border-radius: 15px;
-    max-width: 400px;
-    width: 100%;
-    border: 2px solid #87CEEB;
-}
-
-.name-input-content h3 {
-    color: #87CEEB;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.name-input-content .input-group {
-    margin-bottom: 20px;
-}
-
-.name-input-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.name-input-buttons .btn {
-    flex: 1;
-}
-    background: rgba(34, 139, 34, 0.1);
-    border-color: rgba(34, 139, 34, 0.3);
-}
-
-.control-section:has(#rejoin-room) h3 {
-    color: #32CD32;
-}
-
-/* 再入場セクション用スタイル */
-.control-section:has(#rejoin-room) {
-    background: rgba(128, 0, 128, 0.1);
-    border: 2px solid rgba(128, 0, 128, 0.3);
-}
-
-.spectator-indicator {
-    position: fixed;
-    top: 50px;
-    right: 10px;
-    background: rgba(128, 0, 128, 0.9);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 15px;
-    font-weight: bold;
-    z-index: 100;
-    font-size: 12px;
-}
-
-.spectator-controls {
-    background: rgba(128, 0, 128, 0.2);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border: 2px solid rgba(128, 0, 128, 0.3);
-}
-
-.spectator-info {
-    text-align: center;
-    color: #DDA0DD;
-    font-style: italic;
-    margin-bottom: 10px;
-}
-
-/* 観戦者用スタイル */
-.spectator-mode {
-    background: linear-gradient(45deg, #04384c, #065a7a);
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(4, 56, 76, 0.4);
-    width: 100%;
-    min-height: 44px; /* タッチしやすい最小サイズ */
-}
-
-.btn:hover, .btn:active {
-    background: linear-gradient(45deg, #065a7a, #0876a0);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(4, 56, 76, 0.6);
-}
-
-.btn:disabled {
-    background: #2a2a2a;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-small {
-    padding: 8px 16px;
-    font-size: 12px;
-    width: auto;
-    min-height: 36px;
-}
-
-.btn-primary {
-    background: linear-gradient(45deg, #228B22, #32CD32);
-}
-
-.btn-secondary {
-    background: linear-gradient(45deg, #8B0000, #DC143C);
-}
-
-/* ボタンスタイル */
-.btn {
-    background: rgba(4, 56, 76, 0.3);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border: 2px solid rgba(135, 206, 235, 0.3);
-    backdrop-filter: blur(10px);
-}
-
-.room-controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.control-section {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-.control-section h3 {
-    color: #87CEEB;
-    margin-bottom: 15px;
-    font-size: 16px;
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
+/* モバイル対応のレスポンシブタイトル */
+.title-desktop {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #87CEEB;
-    font-size: 13px;
 }
 
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #04384c;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #e8f4f8;
-    font-size: 16px; /* iOS用の拡大防止 */
-    min-height: 44px;
+.title-mobile {
+    display: none;
 }
 
-.input-group input:focus {
-    outline: none;
-    border-color: #87CEEB;
-    box-shadow: 0 0 10px rgba(135, 206, 235, 0.3);
-}
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    min-height: 44px;
-}
-
-.checkbox-group input[type="checkbox"] {
-    margin-right: 10px;
-    transform: scale(1.2);
-}
-
-/* ルール表示 */
-.info-box {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px;
-    border-radius: 10px;
-    margin: 15px 0;
-    border: 2px solid #87CEEB;
-}
-
-.info-box h3 {
-    color: #FFD700;
-    margin-bottom: 10px;
-}
-
-.rule-toggle {
-    text-align: center;
-}
-
-.rules-list {
-    margin: 15px 0 0 20px;
-    text-align: left;
-}
-
-.rules-list li {
-    margin: 8px 0;
-    line-height: 1.4;
-}
-
-/* ルーム一覧 */
-.room-list {
+/* ゲーム一覧の統合スタイル */
+.games-list {
     background: rgba(0, 0, 0, 0.5);
     padding: 15px;
     border-radius: 10px;
@@ -418,12 +16,32 @@ body {
     border: 2px solid rgba(135, 206, 235, 0.2);
 }
 
-.room-list h3 {
+.games-list h3 {
     color: #87CEEB;
     margin-bottom: 15px;
 }
 
-.room-item {
+.refresh-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.section-title {
+    color: #FFD700;
+    margin: 20px 0 10px 0;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 5px;
+}
+
+.section-title:first-child {
+    margin-top: 0;
+}
+
+/* 統合されたゲームアイテムスタイル */
+.game-item {
     background: rgba(4, 56, 76, 0.3);
     padding: 15px;
     border-radius: 8px;
@@ -435,328 +53,97 @@ body {
     transition: all 0.3s ease;
 }
 
-.room-item:hover {
+.game-item:hover {
     background: rgba(4, 56, 76, 0.5);
     transform: translateX(5px);
 }
 
-.room-item-info {
-    flex: 1;
-    line-height: 1.4;
+.game-item.waiting-room {
+    border-left: 4px solid #87CEEB;
 }
 
-.room-item .btn {
-    width: 100%;
+.game-item.ongoing-game {
+    border-left: 4px solid #32CD32;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.game-details {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #87CEEB;
+    margin-bottom: 8px;
+}
+
+.game-progress {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: #FFD700;
+    margin-bottom: 5px;
+}
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.status-badge.waiting {
+    background: rgba(135, 206, 235, 0.8);
+    color: #04384c;
+}
+
+.status-badge.playing {
+    background: rgba(50, 205, 50, 0.8);
+    color: #004000;
+}
+
+.game-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.game-actions .btn {
+    flex: 1;
+    min-width: 80px;
 }
 
 .password-icon {
     color: #FFD700;
     margin-left: 10px;
-}
-
-/* ルーム情報画面 */
-.room-info {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: none;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-.room-id-display {
-    background: rgba(255, 215, 0, 0.2);
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: clamp(1.2em, 4vw, 1.5em);
-    font-weight: bold;
-    border: 2px solid rgba(255, 215, 0, 0.5);
-    word-break: break-all;
-}
-
-.players-list {
-    background: rgba(4, 56, 76, 0.3);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-.players-list h3 {
-    margin-bottom: 12px;
-    font-size: 16px;
-}
-
-.player-item {
-    padding: 10px;
-    margin: 6px 0;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     font-size: 14px;
 }
 
-.player-item.host::after {
-    content: "👑";
-    margin-left: 8px;
+/* セクションの表示/非表示切り替え */
+.hidden {
+    display: none !important;
 }
 
-.room-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* ゲーム画面 */
-.game-board {
-    display: none;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 15px;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-/* 折りたたみセクション */
-.collapsible-section {
-    margin-bottom: 15px;
-}
-
-.section-toggle {
-    width: 100%;
-    background: rgba(4, 56, 76, 0.7);
-    color: white;
-    border: none;
-    padding: 12px 15px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    min-height: 44px;
-}
-
-.section-toggle:hover {
-    background: rgba(4, 56, 76, 0.9);
-}
-
-.collapsed {
-    display: none;
-}
-
-.game-overview {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-.overview-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    text-align: center;
-}
-
-.overview-grid h4 {
-    color: #FFD700;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-/* 進捗バー */
-.progress-bars {
-    background: rgba(4, 56, 76, 0.5);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border: 2px solid rgba(135, 206, 235, 0.3);
-}
-
-.treasure-progress, .trap-progress {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.treasure-progress span, .trap-progress span {
-    font-weight: bold;
-    margin-right: 12px;
-    min-width: 45px;
-    font-size: 14px;
-}
-
-.icon-row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-/* 進捗アイコンの修正版 - 豚のアイコンを使用 */
-.progress-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    transition: all 0.5s ease;
-    border: 2px solid transparent;
-    position: relative;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    overflow: hidden;
-}
-
-/* 子供（豚）アイコン */
-.progress-icon.treasure {
-    background-color: #FFB6C1;
-    border-color: #FF69B4;
-}
-
-.progress-icon.treasure.used {
-    background-color: #32CD32;
-    border-color: #228B22;
-}
-
-/* 罠アイコン */
-.progress-icon.trap {
-    background-color: linear-gradient(135deg, #8B0000, #DC143C);
-    border-color: #8B0000;
-}
-
-.progress-icon.trap.used {
-    background-color: #333;
-    opacity: 0.4;
-    border-color: #444;
-}
-
-/* 絵文字表示 */
-.progress-icon.treasure::before {
-    content: '🐷';
-    font-size: 18px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.progress-icon.treasure.used::before {
-    content: '👶';
-    font-size: 18px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.progress-icon.trap::before {
-    content: '💀';
-    font-size: 18px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.progress-icon.trap.used::before {
-    content: '💀';
-    font-size: 18px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    filter: grayscale(100%) brightness(0.7);
-}
-
-/* 画像エラー時の処理用 */
-.progress-icon img {
-    display: none;
-}
-
-/* 強制的に絵文字表示する場合のクラス */
-.progress-icon.emoji-only {
-    background-image: none !important;
-}
-
-.progress-icon.emoji-only.treasure::before {
-    content: '🐷';
-}
-
-.progress-icon.emoji-only.trap::before {
-    content: '💀';
-}
-
-/* コンパクトなゲーム情報 */
-.game-info.mobile-compact {
-    background: rgba(4, 56, 76, 0.5);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-.info-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    text-align: center;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 11px;
-}
-
-.info-item .label {
-    font-weight: bold;
-    color: #87CEEB;
-    margin-bottom: 2px;
-}
-
-.info-item .value {
-    font-weight: bold;
-    color: white;
-}
-
-/* 役職表示 */
-.role-card.compact {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border: 3px solid #04384c;
-}
-
-.role-adventurer {
-    border-color: #FFD700;
-    background: rgba(255, 215, 0, 0.1);
-}
-
-.role-guardian {
-    border-color: #8B0000;
-    background: rgba(139, 0, 0, 0.1);
-}
-
-.role-header {
+/* 役職表示の改良 */
+.role-card .role-header {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-.role-image-small {
-    width: 60px;
-    height: 80px;
-    border-radius: 8px;
-    object-fit: cover;
+.role-emoji {
+    font-size: 3em;
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
 }
 
 .role-info {
@@ -766,376 +153,73 @@ body {
 .role-info div {
     font-weight: bold;
     margin-bottom: 5px;
+    font-size: 14px;
 }
 
 .role-info p {
     font-size: 12px;
     line-height: 1.3;
-}
-
-/* 鍵保持者情報 */
-.key-holder-message.compact {
-    background: rgba(255, 215, 0, 0.2);
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border: 2px solid #FFD700;
-}
-
-.key-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-}
-
-.key-icon-small {
-    width: 20px;
-    height: 20px;
-}
-
-.turn-status {
-    font-size: 12px;
     margin: 0;
-    font-style: italic;
 }
 
-/* カード表示 */
-.my-cards-section {
-    background: rgba(4, 56, 76, 0.3);
+/* チャットセクションの改良 */
+.chat-section {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.3);
     padding: 15px;
     border-radius: 10px;
-    margin-bottom: 15px;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.section-header h3 {
-    font-size: 16px;
-    margin: 0;
-}
-
-.card-info {
-    font-size: 12px;
-    color: #87CEEB;
-    margin: 0;
-}
-
-.my-cards-grid.mobile-optimized {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-    max-width: 100%;
-}
-
-.card {
-    aspect-ratio: 3/4;
-    border: 2px solid #04384c;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #022838, #04384c);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8em;
-    font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    min-height: 60px;
-    position: relative;
-}
-
-.card.revealed {
-    opacity: 0.5;
-}
-
-.card.treasure {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #04384c;
-}
-
-.card.trap {
-    background: linear-gradient(135deg, #8B0000, #DC143C);
-    color: white;
-}
-
-.card.empty {
-    background: linear-gradient(135deg, #4a4a4a, #6a6a6a);
-    color: white;
-}
-
-.card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
-}
-
-/* 他プレイヤー */
-.other-players-section {
-    margin-bottom: 15px;
-}
-
-.other-players-section h3 {
-    margin-bottom: 12px;
-    font-size: 16px;
-}
-
-.other-player-box {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border: 2px solid rgba(135, 206, 235, 0.2);
-}
-
-.other-player-box.has-key {
-    border-color: #FFD700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-}
-
-.other-player-box h4 {
-    margin-bottom: 8px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.other-player-cards {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-}
-
-.other-card {
-    aspect-ratio: 3/4;
-    border: 2px solid #04384c;
-    border-radius: 6px;
-    background: linear-gradient(135deg, #011825, #04384c);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8em;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-    min-height: 45px;
-}
-
-.other-card:hover:not(.revealed):not(.disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(135, 206, 235, 0.3);
-    border-color: #87CEEB;
-}
-
-.other-card.disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.other-card.revealed {
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.other-card.treasure {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #04384c;
-}
-
-.other-card.trap {
-    background: linear-gradient(135deg, #8B0000, #DC143C);
-    color: white;
-}
-
-.other-card.empty {
-    background: linear-gradient(135deg, #4a4a4a, #6a6a6a);
-    color: white;
-}
-
-.other-card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 4px;
-}
-
-/* チャット */
-.chat-container.mobile {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 12px;
-    border-radius: 8px;
-    max-height: 150px;
-    overflow-y: auto;
     border: 1px solid rgba(135, 206, 235, 0.2);
-    margin-bottom: 10px;
 }
 
-.chat-message {
-    padding: 4px 8px;
-    margin: 4px 0;
-    border-radius: 4px;
-    font-size: 12px;
-    line-height: 1.3;
-}
-
-.chat-message.system {
-    color: #87CEEB;
-    font-style: italic;
-}
-
-.chat-message.player {
-    color: #FFD700;
-    background: rgba(4, 56, 76, 0.3);
-}
-
-.chat-input-container {
-    display: flex;
-    gap: 8px;
-}
-
-.chat-input-container input {
-    flex: 1;
-    padding: 10px;
-    border: 2px solid #04384c;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #e8f4f8;
-    font-size: 14px;
-    min-height: 40px;
-}
-
-/* エラーメッセージ */
-.error-message {
-    background: rgba(220, 20, 60, 0.9);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    margin: 10px 0;
-    text-align: center;
-    display: none;
-    font-size: 14px;
-    border: 2px solid #DC143C;
-}
-
-/* 勝利画面 */
-.victory-screen {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.victory-content {
-    background: linear-gradient(135deg, #04384c, #022838);
-    padding: 30px;
-    border-radius: 20px;
-    text-align: center;
-    border: 3px solid #FFD700;
-    max-width: 400px;
-    width: 100%;
-}
-
-.victory-content h2 {
-    font-size: clamp(1.8em, 5vw, 2.5em);
-    color: #FFD700;
-    margin-bottom: 15px;
-    text-shadow: 2px 2px 4px #000;
-    line-height: 1.2;
-}
-
-/* ラウンド開始演出 */
-.round-start-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-}
-
-.round-start-text {
-    text-align: center;
-    animation: roundStartAnimation 3s ease-out;
-    padding: 20px;
-}
-
-.round-start-text h1 {
-    font-size: clamp(2em, 8vw, 4em);
-    color: #FFD700;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-    line-height: 1.2;
-}
-
-@keyframes roundStartAnimation {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    20% {
-        transform: scale(1.1);
-        opacity: 1;
-    }
-    80% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 0;
-    }
-}
-
-/* レスポンシブ対応 */
+/* モバイル対応のメディアクエリ */
 @media (max-width: 768px) {
-    body {
-        padding: 5px;
-        font-size: 13px;
+    .title-desktop {
+        display: none;
     }
     
-    .container {
-        padding: 0;
+    .title-mobile {
+        display: block;
     }
     
-    .header {
-        padding: 12px;
-        margin-bottom: 15px;
+    .title-mobile h1 {
+        font-size: 1.5em;
+        line-height: 1.2;
+        margin-bottom: 8px;
     }
     
-    .room-controls {
-        grid-template-columns: 1fr;
+    .title-mobile .subtitle {
+        font-size: 1em;
     }
     
-    .overview-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .refresh-buttons {
+        justify-content: flex-end;
     }
     
-    .info-row {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+    .game-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
     }
     
-    .info-item {
-        font-size: 10px;
+    .game-details,
+    .game-progress {
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .game-actions {
+        justify-content: space-between;
+    }
+    
+    .game-actions .btn {
+        min-width: 70px;
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+    
+    .role-emoji {
+        font-size: 2.5em;
+        min-width: 50px;
     }
     
     .role-header {
@@ -1144,130 +228,185 @@ body {
         gap: 10px;
     }
     
-    .role-image-small {
-        width: 80px;
-        height: 100px;
+    .section-title {
+        font-size: 13px;
     }
     
-    .my-cards-grid.mobile-optimized {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 3px;
+    .status-badge {
+        font-size: 9px;
+        padding: 1px 6px;
     }
     
-    .other-player-cards {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 3px;
+    /* モバイル用のコンパクトレイアウト */
+    .games-list {
+        padding: 10px;
     }
     
-    .card, .other-card {
-        min-height: 70px;
-        font-size: 0.9em;
+    .game-item {
+        padding: 12px;
+        margin-bottom: 8px;
     }
     
-    .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    
-    .card-info {
+    .game-details span,
+    .game-progress span {
         font-size: 11px;
-    }
-    
-    .progress-icon {
-        width: 28px;
-        height: 28px;
-        font-size: 16px;
-    }
-    
-    .progress-icon::before {
-        font-size: 16px !important;
     }
 }
 
 @media (max-width: 480px) {
-    .header h1 {
+    .title-mobile h1 {
         font-size: 1.3em;
-        line-height: 1.1;
     }
     
-    .subtitle {
+    .title-mobile .subtitle {
         font-size: 0.9em;
     }
     
-    .connection-status, .player-name-display {
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
-        margin-bottom: 10px;
-        text-align: center;
+    .refresh-buttons {
+        flex-direction: column;
+        width: 100%;
     }
     
-    .info-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+    .refresh-buttons .btn {
+        width: 100%;
     }
     
-    .my-cards-grid.mobile-optimized {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 2px;
-    }
-    
-    .other-player-cards {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 2px;
-    }
-    
-    .card, .other-card {
-        min-height: 60px;
-        font-size: 0.8em;
-    }
-    
-    .victory-content {
-        padding: 20px;
-    }
-    
-    .progress-icon {
-        width: 24px;
-        height: 24px;
+    .game-header strong {
         font-size: 14px;
     }
     
-    .progress-icon::before {
-        font-size: 14px !important;
+    .game-actions {
+        flex-direction: column;
+    }
+    
+    .game-actions .btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .section-title {
+        font-size: 12px;
+        margin: 15px 0 8px 0;
+    }
+    
+    .role-emoji {
+        font-size: 2em;
+    }
+    
+    .role-info div {
+        font-size: 13px;
+    }
+    
+    .role-info p {
+        font-size: 11px;
+    }
+    
+    /* 極小画面での最適化 */
+    .game-details,
+    .game-progress {
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .game-details span,
+    .game-progress span {
+        font-size: 10px;
+    }
+    
+    .status-badge {
+        align-self: flex-start;
+        margin-top: 3px;
     }
 }
 
-/* 高コントラスト対応 */
+/* ダークモード・高コントラスト対応 */
 @media (prefers-contrast: high) {
-    .btn {
-        border: 2px solid white;
+    .game-item {
+        border-width: 2px;
+        border-color: #FFFFFF;
     }
     
-    .card, .other-card {
-        border-width: 3px;
+    .status-badge.waiting {
+        background: #87CEEB;
+        color: #000000;
     }
     
-    .progress-icon {
-        border: 2px solid white;
+    .status-badge.playing {
+        background: #32CD32;
+        color: #000000;
     }
 }
 
 /* アニメーション無効化対応 */
 @media (prefers-reduced-motion: reduce) {
-    .card, .other-card, .btn, .progress-icon {
+    .game-item {
         transition: none;
     }
     
-    .round-start-text {
-        animation: none;
+    .game-item:hover {
+        transform: none;
+    }
+}
+
+/* タッチデバイス向けの改善 */
+@media (hover: none) and (pointer: coarse) {
+    .game-item:hover {
+        transform: none;
+        background: rgba(4, 56, 76, 0.3);
     }
     
-    @keyframes roundStartAnimation {
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
+    .game-actions .btn {
+        min-height: 44px; /* タッチターゲットサイズ確保 */
+    }
+}
+
+/* 進捗アイコンのモバイル最適化 */
+@media (max-width: 768px) {
+    .progress-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+}
+
+/* バイブレーション機能に関するユーザーフィードバック */
+.vibration-feedback {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 215, 0, 0.9);
+    color: #04384c;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    z-index: 2000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.vibration-feedback.show {
+    opacity: 1;
+}
+
+/* モーダルのモバイル最適化 */
+@media (max-width: 480px) {
+    .name-input-modal {
+        padding: 10px;
+    }
+    
+    .name-input-content {
+        padding: 20px;
+        max-width: none;
+        width: calc(100% - 20px);
     }
 }
