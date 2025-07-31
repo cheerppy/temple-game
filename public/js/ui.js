@@ -12,13 +12,11 @@ class UIManager {
                 document.body.appendChild(indicator);
             }
             
-            // ゲームボードに観戦モードのスタイルを適用
             const gameBoard = document.getElementById('game-board');
             if (gameBoard) {
                 gameBoard.classList.add('spectator-mode');
             }
             
-            // 観戦者用の情報を表示
             this.addSpectatorInfo();
         } else {
             if (existingIndicator) {
@@ -112,26 +110,35 @@ class UIManager {
 
         rooms.forEach(room => {
             const roomDiv = document.createElement('div');
-            roomDiv.className = 'room-item';
+            roomDiv.className = 'game-item waiting-room';
             
             const infoDiv = document.createElement('div');
-            infoDiv.className = 'room-item-info';
+            infoDiv.className = 'game-item-info';
             infoDiv.innerHTML = `
-                <strong>ID: ${room.id}</strong>
-                ${room.hasPassword ? '<span class="password-icon">🔒</span>' : ''}
-                <br>
-                ホスト: ${room.hostName} | プレイヤー: ${room.playerCount}/10
+                <div class="game-header">
+                    <strong>🏠 ${room.id}</strong>
+                    ${room.hasPassword ? '<span class="password-icon">🔒</span>' : ''}
+                    <span class="status-badge waiting">待機中</span>
+                </div>
+                <div class="game-details">
+                    <span>👑 ${room.hostName}</span>
+                    <span>👥 ${room.playerCount}/10</span>
+                </div>
             `;
             
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'game-actions';
+            
             const joinBtn = document.createElement('button');
-            joinBtn.className = 'btn btn-small';
-            joinBtn.textContent = '参加';
+            joinBtn.className = 'btn btn-small btn-primary';
+            joinBtn.textContent = '🚪 参加';
             joinBtn.onclick = () => {
                 this.showNameInputModal(room.id, room.hasPassword);
             };
             
+            actionsDiv.appendChild(joinBtn);
             roomDiv.appendChild(infoDiv);
-            roomDiv.appendChild(joinBtn);
+            roomDiv.appendChild(actionsDiv);
             container.appendChild(roomDiv);
         });
     }
@@ -147,34 +154,53 @@ class UIManager {
 
         games.forEach(game => {
             const gameDiv = document.createElement('div');
-            gameDiv.className = 'ongoing-game-item';
+            gameDiv.className = 'game-item ongoing-game';
             
             const infoDiv = document.createElement('div');
-            infoDiv.className = 'ongoing-game-info';
+            infoDiv.className = 'game-item-info';
             infoDiv.innerHTML = `
-                <strong>ID: ${game.id}</strong>
-                <br>
-                ラウンド: ${game.currentRound}/4 | プレイヤー: ${game.playerCount}/10
-                <br>
-                救出: ${game.treasureFound}/${game.treasureGoal} | 罠: ${game.trapTriggered}/${game.trapGoal}
+                <div class="game-header">
+                    <strong>🎮 ${game.id}</strong>
+                    <span class="status-badge playing">進行中</span>
+                </div>
+                <div class="game-details">
+                    <span>📊 R${game.currentRound}/4</span>
+                    <span>👥 ${game.playerCount}/10</span>
+                </div>
+                <div class="game-progress">
+                    <span>💰 ${game.treasureFound}/${game.treasureGoal}</span>
+                    <span>💀 ${game.trapTriggered}/${game.trapGoal}</span>
+                </div>
             `;
             
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'game-actions';
+            
+            // 観戦ボタン
             const spectateBtn = document.createElement('button');
-            spectateBtn.className = 'btn btn-small';
-            spectateBtn.textContent = '観戦する';
+            spectateBtn.className = 'btn btn-small btn-secondary';
+            spectateBtn.textContent = '👁️ 観戦';
             spectateBtn.onclick = () => {
                 document.getElementById('spectate-room-id').value = game.id;
-                // 観戦者名を自動生成
                 const spectatorName = `観戦者${Math.floor(Math.random() * 1000)}`;
                 document.getElementById('spectator-name').value = spectatorName;
-                // 観戦開始
                 if (window.game) {
                     window.game.spectateRoom();
                 }
             };
             
+            // 再入場ボタン
+            const rejoinBtn = document.createElement('button');
+            rejoinBtn.className = 'btn btn-small btn-primary';
+            rejoinBtn.textContent = '🔄 再入場';
+            rejoinBtn.onclick = () => {
+                this.showRejoinModal(game.id);
+            };
+            
+            actionsDiv.appendChild(spectateBtn);
+            actionsDiv.appendChild(rejoinBtn);
             gameDiv.appendChild(infoDiv);
-            gameDiv.appendChild(spectateBtn);
+            gameDiv.appendChild(actionsDiv);
             container.appendChild(gameDiv);
         });
     }
@@ -183,19 +209,15 @@ class UIManager {
         const modal = document.getElementById('name-input-modal');
         const nameInput = document.getElementById('modal-player-name');
         
-        // モーダルを表示
         modal.style.display = 'flex';
         nameInput.focus();
         
-        // パスワードが必要な場合はルーム参加画面のパスワード欄を表示
         if (hasPassword) {
             document.getElementById('join-password-group').style.display = 'block';
         }
         
-        // ルームIDを設定
         document.getElementById('room-id-input').value = roomId;
         
-        // モーダルのボタンイベント設定
         document.getElementById('modal-join-btn').onclick = () => {
             const playerName = nameInput.value.trim();
             if (!playerName) {
@@ -203,11 +225,9 @@ class UIManager {
                 return;
             }
             
-            // プレイヤー名を設定して参加
             document.getElementById('player-name-join').value = playerName;
             modal.style.display = 'none';
             
-            // ゲーム参加処理
             if (window.game) {
                 window.game.joinRoom();
             }
@@ -218,10 +238,60 @@ class UIManager {
             nameInput.value = '';
         };
         
-        // Enterキーで参加
         nameInput.onkeypress = (e) => {
             if (e.key === 'Enter') {
                 document.getElementById('modal-join-btn').click();
+            }
+        };
+    }
+
+    // 再入場モーダルを表示
+    static showRejoinModal(roomId) {
+        const modal = document.createElement('div');
+        modal.className = 'name-input-modal';
+        modal.innerHTML = `
+            <div class="name-input-content">
+                <h3>ゲームに再入場</h3>
+                <div class="input-group">
+                    <label>プレイヤー名:</label>
+                    <input type="text" id="rejoin-modal-name" placeholder="元のプレイヤー名を入力">
+                </div>
+                <div class="name-input-buttons">
+                    <button id="rejoin-modal-btn" class="btn btn-primary">🔄 再入場</button>
+                    <button id="rejoin-cancel-btn" class="btn btn-secondary">キャンセル</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        const nameInput = document.getElementById('rejoin-modal-name');
+        nameInput.focus();
+        
+        document.getElementById('rejoin-modal-btn').onclick = () => {
+            const playerName = nameInput.value.trim();
+            if (!playerName) {
+                this.showError('プレイヤー名を入力してください');
+                return;
+            }
+            
+            document.getElementById('rejoin-player-name').value = playerName;
+            document.getElementById('rejoin-room-id').value = roomId;
+            modal.remove();
+            
+            if (window.game) {
+                window.game.rejoinRoom();
+            }
+        };
+        
+        document.getElementById('rejoin-cancel-btn').onclick = () => {
+            modal.remove();
+        };
+        
+        nameInput.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('rejoin-modal-btn').click();
             }
         };
     }
@@ -270,7 +340,6 @@ class UIManager {
             const disconnectedText = player.connected ? '' : ' (切断中)';
             div.textContent = `${status} ${player.name}${disconnectedText}`;
             
-            // 切断中のプレイヤーは薄く表示
             if (!player.connected) {
                 div.style.opacity = '0.6';
                 div.style.fontStyle = 'italic';
@@ -319,8 +388,11 @@ class UIManager {
                 break;
         }
 
-        document.getElementById('role-possibility-text').textContent = roleText;
-        document.getElementById('card-distribution-text').textContent = cardText;
+        const rolePossibilityEl = document.getElementById('role-possibility-text');
+        const cardDistributionEl = document.getElementById('card-distribution-text');
+        
+        if (rolePossibilityEl) rolePossibilityEl.textContent = roleText;
+        if (cardDistributionEl) cardDistributionEl.textContent = cardText;
     }
 
     static updateProgressBars(gameData) {
@@ -331,75 +403,69 @@ class UIManager {
 
         // 財宝の進捗バー
         const treasureContainer = document.getElementById('treasure-icons');
-        treasureContainer.innerHTML = '';
-        for (let i = 0; i < treasureTotal; i++) {
-            const icon = document.createElement('div');
-            icon.className = 'progress-icon treasure';
-            if (i < treasureFound) {
-                icon.classList.add('used');
+        if (treasureContainer) {
+            treasureContainer.innerHTML = '';
+            for (let i = 0; i < treasureTotal; i++) {
+                const icon = document.createElement('div');
+                icon.className = 'progress-icon treasure';
+                if (i < treasureFound) {
+                    icon.classList.add('used');
+                }
+                icon.textContent = i < treasureFound ? '👶' : '🐷';
+                treasureContainer.appendChild(icon);
             }
-            
-            // 画像読み込みエラー時のフォールバック処理
-            this.setupIconFallback(icon, 'treasure', i < treasureFound);
-            
-            treasureContainer.appendChild(icon);
         }
 
         // 罠の進捗バー
         const trapContainer = document.getElementById('trap-icons');
-        trapContainer.innerHTML = '';
-        for (let i = 0; i < trapTotal; i++) {
-            const icon = document.createElement('div');
-            icon.className = 'progress-icon trap';
-            if (i < trapTriggered) {
-                icon.classList.add('used');
+        if (trapContainer) {
+            trapContainer.innerHTML = '';
+            for (let i = 0; i < trapTotal; i++) {
+                const icon = document.createElement('div');
+                icon.className = 'progress-icon trap';
+                if (i < trapTriggered) {
+                    icon.classList.add('used');
+                }
+                icon.textContent = '💀';
+                if (i < trapTriggered) {
+                    icon.style.filter = 'grayscale(100%) brightness(0.7)';
+                }
+                trapContainer.appendChild(icon);
             }
-            
-            // 画像読み込みエラー時のフォールバック処理
-            this.setupIconFallback(icon, 'trap', i < trapTriggered);
-            
-            trapContainer.appendChild(icon);
         }
-    }
-
-    // アイコンの画像読み込みエラー時のフォールバック処理
-    static setupIconFallback(icon, type, isUsed) {
-        // 画像が読み込まれない場合のタイマー
-        setTimeout(() => {
-            const hasBackground = window.getComputedStyle(icon).backgroundImage !== 'none';
-            if (!hasBackground) {
-                // 画像が読み込まれていない場合は絵文字表示に切り替え
-                icon.classList.add('emoji-only');
-                console.log(`${type} icon fallback to emoji`);
-            }
-        }, 1000);
     }
 
     static updateGameInfo(gameData) {
-        document.getElementById('current-round').textContent = gameData.currentRound;
-        document.getElementById('treasure-found').textContent = gameData.treasureFound || 0;
-        document.getElementById('trap-triggered').textContent = gameData.trapTriggered || 0;
-        document.getElementById('trap-goal').textContent = gameData.trapGoal || 2;
-        document.getElementById('cards-per-player').textContent = gameData.cardsPerPlayer || 5;
-        document.getElementById('cards-flipped').textContent = gameData.cardsFlippedThisRound || 0;
-        
-        // 財宝目標も更新
-        const treasureGoalEl = document.getElementById('treasure-goal');
-        if (treasureGoalEl) {
-            treasureGoalEl.textContent = gameData.treasureGoal || 7;
-        }
+        const elements = {
+            'current-round': gameData.currentRound,
+            'treasure-found': gameData.treasureFound || 0,
+            'trap-triggered': gameData.trapTriggered || 0,
+            'trap-goal': gameData.trapGoal || 2,
+            'cards-per-player': gameData.cardsPerPlayer || 5,
+            'cards-flipped': gameData.cardsFlippedThisRound || 0,
+            'treasure-goal': gameData.treasureGoal || 7
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
     }
 
     static showRoundStart(roundNumber) {
         const overlay = document.getElementById('round-start-overlay');
         const message = document.getElementById('round-start-message');
         
-        message.textContent = `ラウンド ${roundNumber} スタート！`;
-        overlay.style.display = 'flex';
-        
-        setTimeout(() => {
-            overlay.style.display = 'none';
-        }, 3000);
+        if (overlay && message) {
+            message.textContent = `ラウンド ${roundNumber} スタート！`;
+            overlay.style.display = 'flex';
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 3000);
+        }
     }
 
     static showVictoryScreen(gameData) {
@@ -407,6 +473,8 @@ class UIManager {
         const title = document.getElementById('victory-title');
         const messageEl = document.getElementById('victory-message');
         const winnersList = document.getElementById('winners-list');
+        
+        if (!screen || !title || !messageEl || !winnersList) return;
         
         if (gameData.winningTeam === 'adventurer') {
             title.textContent = '⛏️ 探検家チームの勝利！';
@@ -434,6 +502,8 @@ class UIManager {
 
     static updateMessages(messages) {
         const container = document.getElementById('chat-container');
+        if (!container) return;
+        
         const recentMessages = messages.slice(-20);
         
         container.innerHTML = '';
