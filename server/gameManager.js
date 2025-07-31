@@ -55,6 +55,20 @@ class GameManager {
             }));
     }
 
+    static getOngoingGamesList() {
+        return Object.values(this.games)
+            .filter(game => game.gameState === 'playing')
+            .map(game => ({
+                id: game.id,
+                currentRound: game.currentRound,
+                playerCount: game.players.filter(p => p.connected).length,
+                treasureFound: game.treasureFound,
+                treasureGoal: game.treasureGoal,
+                trapTriggered: game.trapTriggered,
+                trapGoal: game.trapGoal
+            }));
+    }
+
     static addPlayer(roomId, playerId, playerName) {
         const game = this.games[roomId];
         if (!game) return null;
