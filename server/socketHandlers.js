@@ -12,9 +12,14 @@ function setupSocketHandlers(io) {
         console.log('新しい接続:', socket.id);
 
         socket.emit('roomList', GameManager.getPublicRoomList());
+        socket.emit('ongoingGames', GameManager.getOngoingGamesList());
 
         socket.on('getRoomList', () => {
             socket.emit('roomList', GameManager.getPublicRoomList());
+        });
+
+        socket.on('getOngoingGames', () => {
+            socket.emit('ongoingGames', GameManager.getOngoingGamesList());
         });
 
         // 再入場処理を追加
@@ -27,6 +32,8 @@ function setupSocketHandlers(io) {
                 socket.emit('error', { message: 'ルームが見つかりません' });
                 return;
             }
+
+module.exports = { setupSocketHandlers };
 
             const player = game.players.find(p => p.name === playerName);
             if (!player) {
@@ -363,7 +370,7 @@ function setupSocketHandlers(io) {
             switch (revealedCard.type) {
                 case 'treasure':
                     game.treasureFound++;
-                    message += '豚に変えられた子供を発見しました！👶';
+                    message += '子豚を発見しました！🐷';
                     break;
                 case 'trap':
                     game.trapTriggered++;
@@ -388,7 +395,7 @@ function setupSocketHandlers(io) {
             if (game.treasureFound >= game.treasureGoal) {
                 game.gameState = 'finished';
                 game.winningTeam = 'adventurer';
-                game.victoryMessage = `${game.treasureGoal}人の子供を救出しました！探検家チームの勝利です！`;
+                game.victoryMessage = `${game.treasureGoal}匹の子豚を救出しました！探検家チームの勝利です！`;
                 console.log('探検家チーム勝利！');
             } else if (game.trapTriggered >= game.trapGoal) {
                 game.gameState = 'finished';
@@ -413,8 +420,33 @@ function setupSocketHandlers(io) {
                 return;
             }
             
-            const game = GameManager.get(roomId);
-            if (game) {
+            // 鍵保持者が切断した場合、次のプレイヤーに鍵を移す
+            if (game.gameState === 'playing' && game.keyHolderId === socket.id) {
+                const connectedPlayers = game.players.filter(p => p.connected && p.id !== socket.id);
+                if (connectedPlayers.length > 0) {
+                    game.keyHolderId = connectedPlayers[0].id;
+                    game.messages.push({
+                        type: 'system',
+                        text: `鍵が ${connectedPlayers[0].name} に移りました`,
+                        timestamp: Date.now()
+                    });
+                    console.log(`鍵を ${connectedPlayers[0].name} に移動`);
+                }
+            }
+
+            // ホストが切断した場合、次のプレイヤーをホストにする
+            if (game.host === socket.id) {
+                const connectedPlayers = game.players.filter(p => p.connected && p.id !== socket.id);
+                if (connectedPlayers.length > 0) {
+                    game.host = connectedPlayers[0].id;
+                    game.messages.push({
+                        type: 'system',
+                        text: `${connectedPlayers[0].name} が新しいホストになりました`,
+                        timestamp: Date.now()
+                    });
+                    console.log(`ホストを ${connectedPlayers[0].name} に移譲`);
+                }
+            }
                 const player = game.players.find(p => p.id === socket.id);
                 if (player) {
                     // 完全に削除するのではなく、切断状態にマーク
@@ -434,8 +466,8 @@ function setupSocketHandlers(io) {
                 }
             }
 
-            // 5分後に完全にプレイヤーを削除（一時退出の場合は30分後）
-            const timeoutDuration = player?.tempLeft ? 30 * 60 * 1000 : 5 * 60 * 1000;
+            const game = GameManager.get(roomId);
+            if (game) {
             setTimeout(() => {
                 const gameAfterTimeout = GameManager.get(roomId);
                 if (gameAfterTimeout) {
@@ -484,9 +516,10 @@ function setupSocketHandlers(io) {
             io.emit('roomList', GameManager.getPublicRoomList());
         });
     });
-}
+            }
 
-function endRound(game, roomId, io) {
+    });
+}
     game.currentRound++;
     game.cardsFlippedThisRound = 0;
     
@@ -503,7 +536,7 @@ function endRound(game, roomId, io) {
         if (game.currentRound > game.maxRounds) {
             game.gameState = 'finished';
             game.winningTeam = 'guardian';
-            game.victoryMessage = '4ラウンドが終了しました！子供たちを隠し続けた豚男チームの勝利です！';
+            game.victoryMessage = '4ラウンドが終了しました！子豚たちを隠し続けた豚男チームの勝利です！';
         } else {
             game.cardsPerPlayer = Math.max(1, 6 - game.currentRound);
             
@@ -548,6 +581,6 @@ function endRound(game, roomId, io) {
         }
         io.to(roomId).emit('gameUpdate', game);
     }, 3000);
-}
+            }
 
-module.exports = { setupSocketHandlers };
+function endRound(game, roomId, io) {
