@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デバッグ用最小構成</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #333; 
+            color: white; 
+        }
+        .debug-info {
+            background: #444;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #555;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Socket.io 接続テスト</h1>
+    
+    <div class="debug-info">
+        <h3>接続状態</h3>
+        <p id="connection-status">未接続</p>
+    </div>
+    
+    <div class="debug-info">
+        <h3>DOM要素チェック</h3>
+        <p id="dom-check">チェック中...</p>
+    </div>
+    
+    <div class="debug-info">
+        <h3>操作</h3>
+        <button onclick="testConnection()">接続テスト</button>
+        <button onclick="testDOM()">DOM要素テスト</button>
+        <button onclick="createRoom()">ルーム作成テスト</button>
+    </div>
+    
+    <div class="debug-info">
+        <h3>ログ</h3>
+        <div id="log-output" style="background: #222; padding: 10px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+    </div>
+
+    <!-- Socket.io CDN -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    
+    <script>
+        let socket = null;
+        let logs = [];
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${message}`);
+            const logOutput = document.getElementById('log-output');
+            if (logOutput) {
+                logOutput.innerHTML = logs.slice(-20).join('<br>');
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+            console.log(message);
+        }
+        
+        function updateStatus(status) {
+            const statusEl = document.getElementById('connection-status');
+            if (statusEl) {
+                statusEl.textContent = status;
+                statusEl.style.color = status.includes('接続済み') ? '#0f0' : '#f00';
+            }
+        }
+        
+        function testConnection() {
+            log('Socket.io接続を開始...');
+            
+            try {
+                socket = io({
+                    transports: ['websocket', 'polling'],
+                    timeout: 5000
+                });
+                
+                socket.on('connect', () => {
+                    log('✅ Socket.io接続成功！');
+                    updateStatus('接続済み - ID: ' + socket.id);
+                });
+                
+                socket.on('disconnect', (reason) => {
+                    log('❌ Socket.io切断: ' + reason);
+                    updateStatus('切断済み');
+                });
+                
+                socket.on('connect_error', (error) => {
+                    log('❌ 接続エラー: ' + error.message);
+                    updateStatus('接続エラー');
+                });
+                
+                socket.on('roomList', (rooms) => {
+                    log('📋 ルーム一覧受信: ' + rooms.length + '件');
+                });
+                
+            } catch (error) {
+                log('❌ Socket初期化エラー: ' + error.message);
+            }
+        }
+        
+        function testDOM() {
+            log('DOM要素をチェック中...');
+            
+            const elements = [
+                'connection-status',
+                'dom-check',
+                'log-output',
+                'lobby',
+                'room-info',
+                'game-board',
+                'error-message'
+            ];
+            
+            let found = 0;
+            let total = elements.length;
+            
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    log(`✅ 要素発見: #${id}`);
+                    found++;
+                } else {
+                    log(`❌ 要素不明: #${id}`);
+                }
+            });
+            
+            const domCheck = document.getElementById('dom-check');
+            if (domCheck) {
+                domCheck.textContent = `${found}/${total} 要素が利用可能`;
+                domCheck.style.color = found === total ? '#0f0' : '#fa0';
+            }
+        }
+        
+        function createRoom() {
+            if (!socket || !socket.connected) {
+                log('❌ Socket未接続');
+                return;
+            }
+            
+            log('ルーム作成をテスト中...');
+            
+            socket.emit('createRoom', {
+                playerName: 'テストプレイヤー',
+                hasPassword: false,
+                password: ''
+            });
+            
+            socket.on('roomCreated', (data) => {
+                log('✅ ルーム作成成功: ' + data.roomId);
+            });
+            
+            socket.on('error', (error) => {
+                log('❌ ルーム作成エラー: ' + error.message);
+            });
+        }
+        
+        // ページ読み込み完了時の初期チェック
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 ページ読み込み完了');
+            testDOM();
+            
+            // Socket.io が利用可能かチェック
+            if (typeof io !== 'undefined') {
+                log('✅ Socket.io ライブラリ読み込み済み');
+            } else {
+                log('❌ Socket.io ライブラリが見つかりません');
+            }
+        });
+        
+        // エラーキャッチ
+        window.addEventListener('error', (event) => {
+            log('❌ JavaScript エラー: ' + event.message + ' (行:' + event.lineno + ')');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            log('❌ Promise エラー: ' + event.reason);
+        });
+    </script>
+</body>
+</html>
