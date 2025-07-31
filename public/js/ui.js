@@ -127,16 +127,115 @@ class UIManager {
             joinBtn.className = 'btn btn-small';
             joinBtn.textContent = '参加';
             joinBtn.onclick = () => {
-                document.getElementById('room-id-input').value = room.id;
-                if (room.hasPassword) {
-                    document.getElementById('join-password-group').style.display = 'block';
-                }
+                this.showNameInputModal(room.id, room.hasPassword);
             };
             
             roomDiv.appendChild(infoDiv);
             roomDiv.appendChild(joinBtn);
             container.appendChild(roomDiv);
         });
+    }
+
+    static updateOngoingGames(games) {
+        const container = document.getElementById('ongoing-games-container');
+        container.innerHTML = '';
+
+        if (games.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #32CD32;">現在進行中のゲームはありません</p>';
+            return;
+        }
+
+        games.forEach(game => {
+            const gameDiv = document.createElement('div');
+            gameDiv.className = 'ongoing-game-item';
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'ongoing-game-info';
+            infoDiv.innerHTML = `
+                <strong>ID: ${game.id}</strong>
+                <br>
+                ラウンド: ${game.currentRound}/4 | プレイヤー: ${game.playerCount}/10
+                <br>
+                救出: ${game.treasureFound}/${game.treasureGoal} | 罠: ${game.trapTriggered}/${game.trapGoal}
+            `;
+            
+            const spectateBtn = document.createElement('button');
+            spectateBtn.className = 'btn btn-small';
+            spectateBtn.textContent = '観戦する';
+            spectateBtn.onclick = () => {
+                document.getElementById('spectate-room-id').value = game.id;
+                // 観戦者名を自動生成
+                const spectatorName = `観戦者${Math.floor(Math.random() * 1000)}`;
+                document.getElementById('spectator-name').value = spectatorName;
+                // 観戦開始
+                if (window.game) {
+                    window.game.spectateRoom();
+                }
+            };
+            
+            gameDiv.appendChild(infoDiv);
+            gameDiv.appendChild(spectateBtn);
+            container.appendChild(gameDiv);
+        });
+    }
+
+    static showNameInputModal(roomId, hasPassword) {
+        const modal = document.getElementById('name-input-modal');
+        const nameInput = document.getElementById('modal-player-name');
+        
+        // モーダルを表示
+        modal.style.display = 'flex';
+        nameInput.focus();
+        
+        // パスワードが必要な場合はルーム参加画面のパスワード欄を表示
+        if (hasPassword) {
+            document.getElementById('join-password-group').style.display = 'block';
+        }
+        
+        // ルームIDを設定
+        document.getElementById('room-id-input').value = roomId;
+        
+        // モーダルのボタンイベント設定
+        document.getElementById('modal-join-btn').onclick = () => {
+            const playerName = nameInput.value.trim();
+            if (!playerName) {
+                this.showError('プレイヤー名を入力してください');
+                return;
+            }
+            
+            // プレイヤー名を設定して参加
+            document.getElementById('player-name-join').value = playerName;
+            modal.style.display = 'none';
+            
+            // ゲーム参加処理
+            if (window.game) {
+                window.game.joinRoom();
+            }
+        };
+        
+        document.getElementById('modal-cancel-btn').onclick = () => {
+            modal.style.display = 'none';
+            nameInput.value = '';
+        };
+        
+        // Enterキーで参加
+        nameInput.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('modal-join-btn').click();
+            }
+        };
+    }
+
+    static showGameRoomId(roomId) {
+        const gameRoomIdEl = document.getElementById('game-room-id');
+        const gameRoomIdTextEl = document.getElementById('game-room-id-text');
+        
+        if (roomId) {
+            gameRoomIdTextEl.textContent = roomId;
+            gameRoomIdEl.style.display = 'block';
+        } else {
+            gameRoomIdEl.style.display = 'none';
+        }
     }
 
     static showScreen(screenName) {
@@ -188,35 +287,35 @@ class UIManager {
         switch (playerCount) {
             case 3:
                 roleText = '探検家 1-2人、豚男 1-2人';
-                cardText = '子供5人、罠2個、空き部屋8個';
+                cardText = '子豚5匹、罠2個、空き部屋8個';
                 break;
             case 4:
                 roleText = '探検家 2-3人、豚男 1-2人';
-                cardText = '子供6人、罠2個、空き部屋12個';
+                cardText = '子豚6匹、罠2個、空き部屋12個';
                 break;
             case 5:
                 roleText = '探検家 3人、豚男 2人';
-                cardText = '子供7人、罠2個、空き部屋16個';
+                cardText = '子豚7匹、罠2個、空き部屋16個';
                 break;
             case 6:
                 roleText = '探検家 4人、豚男 2人';
-                cardText = '子供8人、罠2個、空き部屋20個';
+                cardText = '子豚8匹、罠2個、空き部屋20個';
                 break;
             case 7:
                 roleText = '探検家 4-5人、豚男 2-3人';
-                cardText = '子供7人、罠2個、空き部屋26個';
+                cardText = '子豚7匹、罠2個、空き部屋26個';
                 break;
             case 8:
                 roleText = '探検家 5-6人、豚男 2-3人';
-                cardText = '子供8人、罠2個、空き部屋30個';
+                cardText = '子豚8匹、罠2個、空き部屋30個';
                 break;
             case 9:
                 roleText = '探検家 6人、豚男 3人';
-                cardText = '子供9人、罠2個、空き部屋34個';
+                cardText = '子豚9匹、罠2個、空き部屋34個';
                 break;
             case 10:
                 roleText = '探検家 6-7人、豚男 3-4人';
-                cardText = '子供10人、罠3個、空き部屋37個';
+                cardText = '子豚10匹、罠3個、空き部屋37個';
                 break;
         }
 
