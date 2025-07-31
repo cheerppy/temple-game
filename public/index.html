@@ -1,318 +1,592 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豚小屋探検隊 - 豚小屋に入らずんば子豚を得ず</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-    
-    <!-- Meta Tags for Social Media -->
-    <meta name="description" content="村から誘拐された子供たちを救出せよ！豚男の呪いで豚に変えられた子供たちを見つけ出す協力型推理ゲーム">
-    <meta property="og:title" content="豚小屋探検隊">
-    <meta property="og:description" content="村から誘拐された子供たちを救出せよ！豚男の呪いで豚に変えられた子供たちを見つけ出す協力型推理ゲーム">
-    <meta property="og:image" content="/images/game-banner.jpg">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="豚小屋探検隊">
-    <meta name="twitter:description" content="村から誘拐された子供たちを救出せよ！">
-    <meta name="twitter:image" content="/images/game-banner.jpg">
-    
-    <!-- Socket.io CDN -->
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    
-    <!-- 外部CSS -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <div class="connection-status disconnected" id="connection-status">🔴 未接続</div>
-    <div class="player-name-display" id="player-name-display" style="display: none;">👤 <span id="my-name"></span></div>
-    
-    <div class="container">
-        <div class="header">
-            <h1>🐷 豚小屋探検隊 🐷</h1>
-            <p class="subtitle">豚小屋に入らずんば子豚を得ず</p>
-        </div>
+const GameManager = require('./gameManager');
+const {
+    generateRoomId,
+    assignRoles,
+    generateAllCards,
+    distributeCards,
+    calculateVictoryGoal
+} = require('./gameLogic');
 
-        <div id="error-message" class="error-message"></div>
+function setupSocketHandlers(io) {
+    io.on('connection', (socket) => {
+        console.log('新しい接続:', socket.id);
 
-        <!-- ロビー画面 -->
-        <div id="lobby" class="lobby">
-            <div class="room-controls">
-                <div class="control-section">
-                    <h3>新しいルームを作成</h3>
-                    <div class="input-group">
-                        <label for="player-name-create">プレイヤー名:</label>
-                        <input type="text" id="player-name-create" placeholder="名前を入力">
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="use-password">
-                        <label for="use-password">パスワードを設定する</label>
-                    </div>
-                    <div class="input-group" id="password-group" style="display: none;">
-                        <label for="room-password">パスワード:</label>
-                        <input type="password" id="room-password" placeholder="パスワードを入力">
-                    </div>
-                    <button id="create-room" class="btn">ルームを作成</button>
-                </div>
-                
-                <div class="control-section">
-                    <h3>ルームに参加</h3>
-                    <div class="input-group">
-                        <label for="player-name-join">プレイヤー名:</label>
-                        <input type="text" id="player-name-join" placeholder="名前を入力">
-                    </div>
-                    <div class="input-group">
-                        <label for="room-id-input">ルームID:</label>
-                        <input type="text" id="room-id-input" placeholder="ルームIDを入力">
-                    </div>
-                    <div class="input-group" id="join-password-group" style="display: none;">
-                        <label for="join-password">パスワード:</label>
-                        <input type="password" id="join-password" placeholder="パスワードを入力">
-                    </div>
-                    <button id="join-room" class="btn">ルームに参加</button>
-                </div>
+        socket.emit('roomList', GameManager.getPublicRoomList());
+        socket.emit('ongoingGames', GameManager.getOngoingGamesList());
 
-                <div class="control-section">
-                    <h3>ゲーム中のルームに再入場</h3>
-                    <div class="input-group">
-                        <label for="rejoin-player-name">プレイヤー名:</label>
-                        <input type="text" id="rejoin-player-name" placeholder="元の名前を入力">
-                    </div>
-                    <div class="input-group">
-                        <label for="rejoin-room-id">ルームID:</label>
-                        <input type="text" id="rejoin-room-id" placeholder="ルームIDを入力">
-                    </div>
-                    <button id="rejoin-room" class="btn">ゲームに再入場</button>
-                </div>
-
-                <div class="control-section">
-                    <h3>観戦モード</h3>
-                    <div class="input-group">
-                        <label for="spectator-name">観戦者名:</label>
-                        <input type="text" id="spectator-name" placeholder="名前を入力">
-                    </div>
-                    <div class="input-group">
-                        <label for="spectate-room-id">ルームID:</label>
-                        <input type="text" id="spectate-room-id" placeholder="ルームIDを入力">
-                    </div>
-                    <button id="spectate-room" class="btn">観戦する</button>
-                </div>
-            </div>
-
-            <div class="room-list">
-                <h3>🏠 開設中のルーム</h3>
-                <button id="refresh-rooms" class="btn btn-small">更新</button>
-                <div id="room-list-container"></div>
-            </div>
-
-            <div class="info-box">
-                <h3>🎮 ゲームルール</h3>
-                <div class="rule-toggle">
-                    <button id="toggle-rules" class="btn btn-small">ルールを表示</button>
-                    <ul id="game-rules" class="rules-list" style="display: none;">
-                        <li><strong>ストーリー</strong>：豚男という怪物が村の子供たちを誘拐し、豚の姿に変えてしまいました</li>
-                        <li><strong>探検家チーム</strong>：豚に変えられた子供を7人すべて救出することが目標</li>
-                        <li><strong>豚男チーム</strong>：罠を2個（10人プレイ時は3個）すべて発動させるか、4ラウンド終了まで子供たちを守る（隠す）ことが目標</li>
-                        <li>各プレイヤーには最初5枚のカードが配られます</li>
-                        <li>自分のカードの内訳は分かりますが、位置は分かりません</li>
-                        <li>鍵を持った人が、他のプレイヤーのカードを1枚選んで公開します</li>
-                        <li>選ばれた人が次に鍵を受け取ります</li>
-                        <li>各ラウンドでプレイヤー数分のカードを公開したら、カードを回収して再配布します</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- ルーム情報画面 -->
-        <div id="room-info" class="room-info">
-            <div class="room-id-display">
-                ルームID: <span id="room-id-display"></span>
-            </div>
-            
-            <div class="players-list">
-                <h3>参加プレイヤー (<span id="player-count">0</span>/10)</h3>
-                <div id="players-list"></div>
-            </div>
-            
-            <div class="room-buttons">
-                <button id="start-game" class="btn btn-primary" style="display: none;">ゲーム開始 (3人以上必要)</button>
-                <button id="leave-room" class="btn btn-secondary">ルームを退出</button>
-            </div>
-
-            <!-- プレイ中退出機能 -->
-            <div class="temp-leave-section" id="temp-leave-section" style="display: none;">
-                <div class="temp-leave-info">
-                    <h4>⚠️ ゲーム中の一時退出</h4>
-                    <p>ゲーム中ですが、一時的に退出できます。</p>
-                    <p>プレイヤー名とルームIDを覚えておけば、後で再入場可能です。</p>
-                </div>
-                <div class="temp-leave-buttons">
-                    <button id="temp-leave-room" class="btn btn-secondary">一時退出</button>
-                    <button id="cancel-temp-leave" class="btn">キャンセル</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ゲーム画面 -->
-        <div id="game-board" class="game-board">
-            <!-- 折りたたみ可能なゲーム概要 -->
-            <div class="collapsible-section">
-                <button class="section-toggle" onclick="toggleSection('game-overview')">
-                    <span>ゲーム情報</span> <span class="toggle-icon">▼</span>
-                </button>
-                <div id="game-overview" class="game-overview collapsed">
-                    <div class="overview-grid">
-                        <div class="role-possibility">
-                            <h4>役職構成</h4>
-                            <p id="role-possibility-text"></p>
-                        </div>
-                        <div class="card-distribution">
-                            <h4>カード内訳</h4>
-                            <p id="card-distribution-text"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 進捗バー -->
-            <div class="progress-bars">
-                <div class="treasure-progress">
-                    <span>救出</span>
-                    <div id="treasure-icons" class="icon-row"></div>
-                </div>
-                <div class="trap-progress">
-                    <span>罠</span>
-                    <div id="trap-icons" class="icon-row"></div>
-                </div>
-            </div>
-
-            <!-- コンパクトなゲーム情報 -->
-            <div class="game-info mobile-compact">
-                <div class="info-row">
-                    <div class="info-item">
-                        <span class="label">R</span>
-                        <span class="value"><span id="current-round">1</span>/4</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">🐷</span>
-                        <span class="value"><span id="treasure-found">0</span>/<span id="treasure-goal">7</span></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">💀</span>
-                        <span class="value"><span id="trap-triggered">0</span>/<span id="trap-goal">2</span></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">配布</span>
-                        <span class="value" id="cards-per-player">5</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">公開</span>
-                        <span class="value"><span id="cards-flipped">0</span>枚</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 役職表示 -->
-            <div id="role-reveal" class="role-card compact">
-                <div class="role-header">
-                    <img id="role-image" class="role-image-small" src="" alt="">
-                    <div class="role-info">
-                        <div id="player-role"></div>
-                        <p id="role-description"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 鍵保持者情報 -->
-            <div id="key-holder-message" class="key-holder-message compact">
-                <div class="key-info">
-                    <img src="/images/key-icon.png" class="key-icon-small" alt="鍵">
-                    <span>鍵: <strong id="key-holder-name"></strong></span>
-                </div>
-                <p id="turn-message" class="turn-status"></p>
-            </div>
-
-            <!-- 自分のカード -->
-            <div class="my-cards-section">
-                <div class="section-header">
-                    <h3>あなたのカード</h3>
-                    <p class="card-info">子供 <span id="my-treasure">0</span> / 罠 <span id="my-trap">0</span> / 空き <span id="my-empty">0</span></p>
-                </div>
-                <div id="my-cards-grid" class="my-cards-grid mobile-optimized"></div>
-            </div>
-
-            <!-- 他のプレイヤー -->
-            <div class="other-players-section">
-                <h3>他のプレイヤー</h3>
-                <div id="other-players-container"></div>
-            </div>
-
-            <!-- ゲーム中の退出ボタン -->
-            <div class="game-leave-section">
-                <button id="game-leave-room" class="btn btn-secondary btn-small">一時退出</button>
-            </div>
-
-            <!-- チャット -->
-            <div class="collapsible-section">
-                <button class="section-toggle" onclick="toggleSection('chat-section')">
-                    <span>チャット</span> <span class="toggle-icon">▼</span>
-                </button>
-                <div id="chat-section" class="collapsed">
-                    <div id="chat-container" class="chat-container mobile"></div>
-                    <div class="chat-input-container">
-                        <input type="text" id="chat-input" placeholder="メッセージ..." maxlength="100">
-                        <button id="send-chat" class="btn btn-small">送信</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ラウンド開始演出 -->
-        <div id="round-start-overlay" class="round-start-overlay">
-            <div class="round-start-text">
-                <h1 id="round-start-message">ラウンド 1 スタート！</h1>
-            </div>
-        </div>
-
-        <!-- 勝利画面 -->
-        <div id="victory-screen" class="victory-screen">
-            <div class="victory-content">
-                <h2 id="victory-title"></h2>
-                <p id="victory-message"></p>
-                <div id="winners-list" style="margin: 20px 0;"></div>
-                <button id="return-to-lobby" class="btn">ロビーに戻る</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 外部JavaScript -->
-    <script src="js/ui.js"></script>
-    <script src="js/socketClient.js"></script>
-    <script src="js/game.js"></script>
-    
-    <script>
-        // 折りたたみ機能
-        function toggleSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            const button = section.previousElementSibling;
-            const icon = button.querySelector('.toggle-icon');
-            
-            section.classList.toggle('collapsed');
-            icon.textContent = section.classList.contains('collapsed') ? '▼' : '▲';
-        }
-
-        // ルール表示切り替え
-        document.getElementById('toggle-rules').addEventListener('click', function() {
-            const rules = document.getElementById('game-rules');
-            const isHidden = rules.style.display === 'none';
-            rules.style.display = isHidden ? 'block' : 'none';
-            this.textContent = isHidden ? 'ルールを隠す' : 'ルールを表示';
+        socket.on('getRoomList', () => {
+            socket.emit('roomList', GameManager.getPublicRoomList());
         });
-    </script>
-</body>
-</html>
+
+        socket.on('getOngoingGames', () => {
+            socket.emit('ongoingGames', GameManager.getOngoingGamesList());
+        });
+
+        // 再入場処理を追加
+        socket.on('rejoinRoom', (data) => {
+            const { roomId, playerName } = data;
+            console.log(`再入場試行: ${playerName} -> ${roomId}`);
+            
+            const game = GameManager.get(roomId);
+            if (!game) {
+                socket.emit('error', { message: 'ルームが見つかりません' });
+                return;
+            }
+
+module.exports = { setupSocketHandlers };
+
+            const player = game.players.find(p => p.name === playerName);
+            if (!player) {
+                socket.emit('error', { message: 'プレイヤーが見つかりません。ゲームが終了した可能性があります。' });
+                return;
+            }
+
+            // プレイヤー情報を更新
+            player.id = socket.id;
+            player.connected = true;
+            
+            socket.join(roomId);
+            socket.roomId = roomId;
+
+            // 再入場成功を通知
+            socket.emit('rejoinSuccess', { 
+                roomId, 
+                gameData: game,
+                isHost: game.host === player.id || game.host === playerName
+            });
+
+            // 他のプレイヤーに再入場を通知
+            game.messages.push({
+                type: 'system',
+                text: `${playerName} がゲームに復帰しました`,
+                timestamp: Date.now()
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+            
+            // ゲーム終了時は進行中リストから削除
+            if (game.gameState === 'finished') {
+                io.emit('ongoingGames', GameManager.getOngoingGamesList());
+            }
+            
+            console.log(`${playerName} が ${roomId} に再入場しました`);
+        });
+
+        // 一時退出処理を追加
+        socket.on('tempLeaveRoom', () => {
+            const roomId = socket.roomId;
+            if (!roomId) return;
+            
+            const game = GameManager.get(roomId);
+            if (!game) return;
+
+            const player = game.players.find(p => p.id === socket.id);
+            if (player) {
+                // 一時退出状態にマーク
+                player.connected = false;
+                player.tempLeft = true;
+                
+                game.messages.push({
+                    type: 'system',
+                    text: `${player.name} が一時退出しました（再入場可能）`,
+                    timestamp: Date.now()
+                });
+                
+                io.to(roomId).emit('gameUpdate', game);
+                io.to(roomId).emit('newMessage', game.messages);
+            }
+
+            socket.leave(roomId);
+            socket.roomId = null;
+            
+            console.log(`プレイヤーが ${roomId} から一時退出しました`);
+        });
+
+        // 観戦処理を追加
+        socket.on('spectateRoom', (data) => {
+            const { roomId, spectatorName } = data;
+            console.log(`観戦試行: ${spectatorName} -> ${roomId}`);
+            
+            const game = GameManager.get(roomId);
+            if (!game) {
+                socket.emit('error', { message: 'ルームが見つかりません' });
+                return;
+            }
+
+            // 観戦者として参加
+            socket.join(roomId);
+            socket.roomId = roomId;
+            socket.isSpectator = true;
+
+            // 観戦成功を通知
+            socket.emit('spectateSuccess', { 
+                roomId, 
+                gameData: game
+            });
+
+            // 他のプレイヤーに観戦者参加を通知
+            game.messages.push({
+                type: 'system',
+                text: `${spectatorName} が観戦を開始しました`,
+                timestamp: Date.now()
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+            
+            console.log(`${spectatorName} が ${roomId} を観戦開始`);
+        });
+
+        // 再接続処理を追加
+        socket.on('reconnectToRoom', (data) => {
+            const { roomId, playerName } = data;
+            console.log(`再接続試行: ${playerName} -> ${roomId}`);
+            
+            const game = GameManager.get(roomId);
+            if (!game) {
+                socket.emit('error', { message: 'ルームが見つかりません' });
+                return;
+            }
+
+            const player = game.players.find(p => p.name === playerName);
+            if (!player) {
+                socket.emit('error', { message: 'プレイヤーが見つかりません' });
+                return;
+            }
+
+            // プレイヤー情報を更新
+            player.id = socket.id;
+            player.connected = true;
+            
+            socket.join(roomId);
+            socket.roomId = roomId;
+
+            // 再接続成功を通知
+            socket.emit('reconnectSuccess', { 
+                roomId, 
+                gameData: game,
+                isHost: game.host === player.id || game.host === playerName
+            });
+
+            // 他のプレイヤーに再接続を通知
+            game.messages.push({
+                type: 'system',
+                text: `${playerName} が再接続しました`,
+                timestamp: Date.now()
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+            
+            console.log(`${playerName} が ${roomId} に再接続しました`);
+        });
+
+        // クライアントエラー監視
+        socket.on('clientError', (errorInfo) => {
+            console.error('Client Error Report:', errorInfo);
+            // ここでエラーログサービスに送信可能
+        });
+
+        socket.on('createRoom', (data) => {
+            const { playerName, hasPassword, password } = data;
+            const roomId = generateRoomId();
+            const game = GameManager.create(roomId, socket.id, playerName, hasPassword, password);
+            
+            socket.join(roomId);
+            socket.roomId = roomId;
+            
+            // ローカルストレージ用の情報を保存
+            socket.emit('roomCreated', { 
+                roomId, 
+                gameData: game,
+                playerInfo: { roomId, playerName, isHost: true }
+            });
+            
+            io.emit('roomList', GameManager.getPublicRoomList());
+            
+            console.log(`ルーム ${roomId} が作成されました`);
+        });
+
+        socket.on('joinRoom', (data) => {
+            const { roomId, playerName, password } = data;
+            const game = GameManager.get(roomId);
+
+            if (!game) {
+                socket.emit('error', { message: 'ルームが見つかりません' });
+                return;
+            }
+
+            if (game.password && game.password !== password) {
+                socket.emit('error', { message: 'パスワードが違います' });
+                return;
+            }
+
+            const existingPlayer = game.players.find(p => p.name === playerName);
+            
+            if (!existingPlayer && game.players.length >= 10) {
+                socket.emit('error', { message: 'ルームが満員です' });
+                return;
+            }
+
+            if (!existingPlayer && game.gameState !== 'waiting') {
+                socket.emit('error', { message: 'ゲームが既に開始されています' });
+                return;
+            }
+
+            GameManager.addPlayer(roomId, socket.id, playerName);
+            
+            socket.join(roomId);
+            socket.roomId = roomId;
+
+            // 参加成功を通知（再接続情報付き）
+            socket.emit('joinSuccess', {
+                roomId,
+                gameData: game,
+                playerInfo: { roomId, playerName, isHost: game.host === socket.id }
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            
+            game.messages.push({
+                type: 'system',
+                text: `${playerName} が${existingPlayer ? '再' : ''}参加しました`,
+                timestamp: Date.now()
+            });
+            
+            io.to(roomId).emit('newMessage', game.messages);
+            io.emit('roomList', GameManager.getPublicRoomList());
+            
+            console.log(`${playerName} がルーム ${roomId} に参加`);
+        });
+
+        socket.on('sendChat', (message) => {
+            const roomId = socket.roomId;
+            const game = GameManager.get(roomId);
+            
+            if (!game || !message || message.length > 100) return;
+            
+            const player = game.players.find(p => p.id === socket.id);
+            if (!player) return;
+            
+            const chatMessage = {
+                type: 'player',
+                playerId: socket.id,
+                playerName: player.name,
+                text: message,
+                timestamp: Date.now()
+            };
+            
+            game.messages.push(chatMessage);
+            io.to(roomId).emit('newMessage', game.messages);
+        });
+
+        socket.on('startGame', () => {
+            const roomId = socket.roomId;
+            const game = GameManager.get(roomId);
+
+            if (!game || game.host !== socket.id) {
+                return;
+            }
+
+            if (game.players.length < 3) {
+                socket.emit('error', { message: '3人以上必要です' });
+                return;
+            }
+
+            const playerCount = game.players.length;
+            
+            const roles = assignRoles(playerCount);
+            game.players.forEach((player, index) => {
+                player.role = roles[index];
+            });
+
+            const { cards, treasureCount, trapCount } = generateAllCards(playerCount);
+            game.allCards = cards;
+            game.totalTreasures = treasureCount;
+            game.totalTraps = trapCount;
+            
+            const { treasureGoal, trapGoal } = calculateVictoryGoal(playerCount);
+            game.treasureGoal = treasureGoal;
+            game.trapGoal = trapGoal;
+
+            console.log(`ゲーム開始: ${playerCount}人, 財宝目標:${treasureGoal}, 罠目標:${trapGoal}`);
+
+            const { playerHands, remainingCards } = distributeCards(cards, playerCount, 5);
+            game.playerHands = playerHands;
+            game.remainingCards = remainingCards;
+            
+            game.players.forEach((player, index) => {
+                player.hand = playerHands[index];
+            });
+
+            game.gameState = 'playing';
+            
+            const randomIndex = Math.floor(Math.random() * game.players.length);
+            game.keyHolderId = game.players[randomIndex].id;
+            game.currentRound = 1;
+            game.cardsFlippedThisRound = 0;
+
+            game.messages.push({
+                type: 'system',
+                text: 'ゲームが開始されました！',
+                timestamp: Date.now()
+            });
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+            io.to(roomId).emit('roundStart', 1);
+            io.emit('roomList', GameManager.getPublicRoomList());
+            io.emit('ongoingGames', GameManager.getOngoingGamesList());
+            
+            console.log(`ルーム ${roomId} でゲーム開始`);
+        });
+
+        socket.on('selectCard', (data) => {
+            const { targetPlayerId, cardIndex } = data;
+            const roomId = socket.roomId;
+            const game = GameManager.get(roomId);
+
+            if (!game || game.gameState !== 'playing') {
+                return;
+            }
+
+            if (game.keyHolderId !== socket.id) {
+                socket.emit('error', { message: 'あなたのターンではありません' });
+                return;
+            }
+
+            if (targetPlayerId === socket.id) {
+                socket.emit('error', { message: '自分以外のプレイヤーを選んでください' });
+                return;
+            }
+
+            const targetPlayer = game.players.find(p => p.id === targetPlayerId);
+            if (!targetPlayer || !targetPlayer.hand[cardIndex] || targetPlayer.hand[cardIndex].revealed) {
+                return;
+            }
+
+            const revealedCard = targetPlayer.hand[cardIndex];
+            revealedCard.revealed = true;
+
+            // バイブレーション用にカード情報を追加
+            game.lastRevealedCard = { type: revealedCard.type };
+
+            let message = `${targetPlayer.name} の`;
+            switch (revealedCard.type) {
+                case 'treasure':
+                    game.treasureFound++;
+                    message += '子豚を発見しました！🐷';
+                    break;
+                case 'trap':
+                    game.trapTriggered++;
+                    message += '豚男の罠が発動しました！💀';
+                    break;
+                case 'empty':
+                    message += '空き部屋でした 📦';
+                    break;
+            }
+
+            game.messages.push({
+                type: 'system',
+                text: message,
+                timestamp: Date.now()
+            });
+
+            game.keyHolderId = targetPlayerId;
+            game.cardsFlippedThisRound++;
+
+            console.log(`カード公開: ${revealedCard.type}, 財宝発見:${game.treasureFound}/${game.treasureGoal}, 罠発動:${game.trapTriggered}/${game.trapGoal}`);
+
+            if (game.treasureFound >= game.treasureGoal) {
+                game.gameState = 'finished';
+                game.winningTeam = 'adventurer';
+                game.victoryMessage = `${game.treasureGoal}匹の子豚を救出しました！探検家チームの勝利です！`;
+                console.log('探検家チーム勝利！');
+            } else if (game.trapTriggered >= game.trapGoal) {
+                game.gameState = 'finished';
+                game.winningTeam = 'guardian';
+                game.victoryMessage = `${game.trapGoal}個の罠が発動しました！豚男チームの勝利です！`;
+                console.log('豚男チーム勝利！');
+            } else if (game.cardsFlippedThisRound >= game.players.length) {
+                endRound(game, roomId, io);
+            }
+
+            io.to(roomId).emit('gameUpdate', game);
+            io.to(roomId).emit('newMessage', game.messages);
+        });
+
+        socket.on('disconnect', () => {
+            const roomId = socket.roomId;
+            if (!roomId) return;
+            
+            // 観戦者の場合は特別な処理
+            if (socket.isSpectator) {
+                console.log('観戦者が切断しました');
+                return;
+            }
+            
+            // 鍵保持者が切断した場合、次のプレイヤーに鍵を移す
+            if (game.gameState === 'playing' && game.keyHolderId === socket.id) {
+                const connectedPlayers = game.players.filter(p => p.connected && p.id !== socket.id);
+                if (connectedPlayers.length > 0) {
+                    game.keyHolderId = connectedPlayers[0].id;
+                    game.messages.push({
+                        type: 'system',
+                        text: `鍵が ${connectedPlayers[0].name} に移りました`,
+                        timestamp: Date.now()
+                    });
+                    console.log(`鍵を ${connectedPlayers[0].name} に移動`);
+                }
+            }
+
+            // ホストが切断した場合、次のプレイヤーをホストにする
+            if (game.host === socket.id) {
+                const connectedPlayers = game.players.filter(p => p.connected && p.id !== socket.id);
+                if (connectedPlayers.length > 0) {
+                    game.host = connectedPlayers[0].id;
+                    game.messages.push({
+                        type: 'system',
+                        text: `${connectedPlayers[0].name} が新しいホストになりました`,
+                        timestamp: Date.now()
+                    });
+                    console.log(`ホストを ${connectedPlayers[0].name} に移譲`);
+                }
+            }
+                const player = game.players.find(p => p.id === socket.id);
+                if (player) {
+                    // 完全に削除するのではなく、切断状態にマーク
+                    player.connected = false;
+                    
+                    // 一時退出でない場合のメッセージ
+                    if (!player.tempLeft) {
+                        game.messages.push({
+                            type: 'system',
+                            text: `${player.name} が切断しました（再接続可能）`,
+                            timestamp: Date.now()
+                        });
+                        
+                        io.to(roomId).emit('gameUpdate', game);
+                        io.to(roomId).emit('newMessage', game.messages);
+                    }
+                }
+            }
+
+            const game = GameManager.get(roomId);
+            if (game) {
+            setTimeout(() => {
+                const gameAfterTimeout = GameManager.get(roomId);
+                if (gameAfterTimeout) {
+                    const disconnectedPlayer = gameAfterTimeout.players.find(p => p.id === socket.id && !p.connected);
+                    if (disconnectedPlayer) {
+                        gameAfterTimeout.players = gameAfterTimeout.players.filter(p => p.id !== socket.id);
+                        
+                        if (gameAfterTimeout.players.length === 0) {
+                            GameManager.delete(roomId);
+                            console.log(`ルーム ${roomId} を削除`);
+                        } else {
+                            io.to(roomId).emit('gameUpdate', gameAfterTimeout);
+                        }
+                        io.emit('roomList', GameManager.getPublicRoomList());
+                    }
+                }
+            }, timeoutDuration);
+        });
+
+        socket.on('leaveRoom', () => {
+            const roomId = socket.roomId;
+            if (!roomId) return;
+            
+            // 観戦者の場合
+            if (socket.isSpectator) {
+                socket.leave(roomId);
+                socket.roomId = null;
+                socket.isSpectator = false;
+                return;
+            }
+            
+            const game = GameManager.get(roomId);
+            if (!game) return;
+
+            game.players = game.players.filter(p => p.id !== socket.id);
+            
+            socket.leave(roomId);
+            socket.roomId = null;
+
+            if (game.players.length === 0) {
+                GameManager.delete(roomId);
+            } else {
+                io.to(roomId).emit('gameUpdate', game);
+            }
+            
+            io.emit('roomList', GameManager.getPublicRoomList());
+        });
+    });
+            }
+
+    });
+}
+    game.currentRound++;
+    game.cardsFlippedThisRound = 0;
+    
+    game.messages.push({
+        type: 'system',
+        text: `ラウンド ${game.currentRound - 1} 終了！3秒後に次のラウンドが始まります...`,
+        timestamp: Date.now()
+    });
+    
+    io.to(roomId).emit('gameUpdate', game);
+    io.to(roomId).emit('newMessage', game.messages);
+    
+    setTimeout(() => {
+        if (game.currentRound > game.maxRounds) {
+            game.gameState = 'finished';
+            game.winningTeam = 'guardian';
+            game.victoryMessage = '4ラウンドが終了しました！子豚たちを隠し続けた豚男チームの勝利です！';
+        } else {
+            game.cardsPerPlayer = Math.max(1, 6 - game.currentRound);
+            
+            const allRemainingCards = [];
+            
+            game.players.forEach(player => {
+                player.hand.forEach(card => {
+                    if (!card.revealed) {
+                        allRemainingCards.push(card);
+                    }
+                });
+            });
+            
+            allRemainingCards.push(...game.remainingCards);
+            
+            if (allRemainingCards.length >= game.players.length * game.cardsPerPlayer) {
+                const { playerHands, remainingCards } = distributeCards(
+                    allRemainingCards, 
+                    game.players.length, 
+                    game.cardsPerPlayer
+                );
+                
+                game.playerHands = playerHands;
+                game.remainingCards = remainingCards;
+                
+                game.players.forEach((player, index) => {
+                    player.hand = playerHands[index];
+                });
+                
+                game.messages.push({
+                    type: 'system',
+                    text: `ラウンド ${game.currentRound} 開始！各プレイヤーに${game.cardsPerPlayer}枚配布`,
+                    timestamp: Date.now()
+                });
+                
+                io.to(roomId).emit('roundStart', game.currentRound);
+            } else {
+                game.gameState = 'finished';
+                game.winningTeam = 'guardian';
+                game.victoryMessage = 'カードが尽きました！豚男チームの勝利です！';
+            }
+        }
+        io.to(roomId).emit('gameUpdate', game);
+    }, 3000);
+            }
+
+function endRound(game, roomId, io) {
