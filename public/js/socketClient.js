@@ -74,6 +74,11 @@ class SocketClient {
             UIManager.updateRoomList(rooms);
         });
 
+        // 進行中ゲーム一覧受信
+        this.socket.on('ongoingGames', (games) => {
+            UIManager.updateOngoingGames(games);
+        });
+
         // ルーム作成完了
         this.socket.on('roomCreated', (data) => {
             this.game.onRoomCreated(data);
@@ -161,6 +166,10 @@ class SocketClient {
 
     getRoomList() {
         this.emit('getRoomList');
+    }
+
+    getOngoingGames() {
+        this.emit('getOngoingGames');
     }
 
     createRoom(playerName, hasPassword, password) {
