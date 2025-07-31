@@ -390,7 +390,10 @@ class TreasureTempleGame {
 
     showRoomInfo() {
         UIManager.showScreen('room-info');
-        document.getElementById('room-id-display').textContent = this.roomId;
+        const roomIdDisplay = document.getElementById('room-id-display');
+        if (roomIdDisplay && this.roomId) {
+            roomIdDisplay.textContent = this.roomId;
+        }
     }
 
     updateUI() {
