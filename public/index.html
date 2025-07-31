@@ -44,11 +44,11 @@
         <div id="error-message" class="error-message" style="display: none;"></div>
 
         <!-- ロビー画面 -->
-        <div id="lobby" class="screen">
+        <div id="lobby" class="screen" style="display: block;">
             <!-- ルール説明 -->
             <div class="info-box">
                 <div class="rule-toggle">
-                    <button id="toggle-rules" class="btn btn-small" onclick="toggleRules()">📋 ルールを表示/非表示</button>
+                    <button id="toggle-rules" class="btn btn-small">📋 ルールを表示/非表示</button>
                 </div>
                 <div id="rules-content" style="display: none;">
                     <h3>🎯 ゲームの目的</h3>
@@ -159,7 +159,7 @@
         </div>
 
         <!-- ルーム情報画面 -->
-        <div id="room-info" class="room-info">
+        <div id="room-info" class="room-info" style="display: none;">
             <div class="room-id-display">
                 ルームID: <span id="room-id-display"></span>
             </div>
@@ -190,13 +190,13 @@
         </div>
 
         <!-- ゲーム画面 -->
-        <div id="game-board" class="game-board">
+        <div id="game-board" class="game-board" style="display: none;">
             <!-- ゲーム情報概要 -->
             <div class="collapsible-section">
                 <button class="section-toggle" onclick="toggleSection('game-overview')">
                     📊 ゲーム情報 <span>▼</span>
                 </button>
-                <div id="game-overview" class="game-overview">
+                <div id="game-overview" class="game-overview collapsed">
                     <div class="overview-grid">
                         <div>
                             <h4>人数構成</h4>
@@ -296,7 +296,7 @@
         </div>
 
         <!-- 勝利画面 -->
-        <div id="victory-screen" class="victory-screen">
+        <div id="victory-screen" class="victory-screen" style="display: none;">
             <div class="victory-content">
                 <h2 id="victory-title">ゲーム終了</h2>
                 <p id="victory-message">-</p>
@@ -306,14 +306,14 @@
         </div>
 
         <!-- ラウンド開始演出 -->
-        <div id="round-start-overlay" class="round-start-overlay">
+        <div id="round-start-overlay" class="round-start-overlay" style="display: none;">
             <div class="round-start-text">
                 <h1 id="round-start-message">ラウンド開始</h1>
             </div>
         </div>
 
         <!-- プレイヤー名入力モーダル -->
-        <div id="name-input-modal" class="name-input-modal">
+        <div id="name-input-modal" class="name-input-modal" style="display: none;">
             <div class="name-input-content">
                 <h3>プレイヤー名を入力</h3>
                 <div class="input-group">
@@ -337,35 +337,52 @@
         // ルール表示切り替え
         function toggleRules() {
             const content = document.getElementById('rules-content');
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            if (content) {
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            }
         }
 
         // セクション折りたたみ
         function toggleSection(sectionId) {
             const section = document.getElementById(sectionId);
-            section.classList.toggle('collapsed');
+            if (section) {
+                section.classList.toggle('collapsed');
+            }
         }
 
-        // ゲーム表示切り替え
-        document.getElementById('toggle-game-view').addEventListener('click', function() {
-            const waitingSection = document.getElementById('waiting-rooms-section');
-            const ongoingSection = document.getElementById('ongoing-games-section');
-            
-            if (waitingSection.style.display === 'none') {
-                waitingSection.style.display = 'block';
-                ongoingSection.style.display = 'block';
-                this.textContent = '📋 表示切替';
-            } else {
-                // どちらを表示するかトグル
-                if (waitingSection.classList.contains('hidden')) {
-                    waitingSection.classList.remove('hidden');
-                    ongoingSection.classList.add('hidden');
-                    this.textContent = '🎯 進行中';
-                } else {
-                    waitingSection.classList.add('hidden');
-                    ongoingSection.classList.remove('hidden');
-                    this.textContent = '📝 待機中';
-                }
+        // イベントリスナーの追加
+        document.addEventListener('DOMContentLoaded', function() {
+            // ルール表示切り替えボタン
+            const toggleRulesBtn = document.getElementById('toggle-rules');
+            if (toggleRulesBtn) {
+                toggleRulesBtn.addEventListener('click', toggleRules);
+            }
+
+            // ゲーム表示切り替えボタン
+            const toggleGameViewBtn = document.getElementById('toggle-game-view');
+            if (toggleGameViewBtn) {
+                toggleGameViewBtn.addEventListener('click', function() {
+                    const waitingSection = document.getElementById('waiting-rooms-section');
+                    const ongoingSection = document.getElementById('ongoing-games-section');
+                    
+                    if (waitingSection && ongoingSection) {
+                        if (waitingSection.style.display === 'none') {
+                            waitingSection.style.display = 'block';
+                            ongoingSection.style.display = 'block';
+                            this.textContent = '📋 表示切替';
+                        } else {
+                            if (waitingSection.classList.contains('hidden')) {
+                                waitingSection.classList.remove('hidden');
+                                ongoingSection.classList.add('hidden');
+                                this.textContent = '🎯 進行中';
+                            } else {
+                                waitingSection.classList.add('hidden');
+                                ongoingSection.classList.remove('hidden');
+                                this.textContent = '📝 待機中';
+                            }
+                        }
+                    }
+                });
             }
         });
     </script>
