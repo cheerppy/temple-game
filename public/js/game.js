@@ -1,4 +1,15 @@
-class TreasureTempleGame {
+updateGameUI() {
+        UIManager.showScreen('game-board');
+        
+        // ゲーム中のルームID表示
+        UIManager.showGameRoomId(this.roomId);
+
+        UIManager.updateGameOverview(this.gameData.players.length);
+        UIManager.updateProgressBars(this.gameData);
+        UIManager.updateGameInfo(this.gameData);
+
+        const keyHolder = this.gameData.players.find(p => p.id === this.gameData.keyHolderId);
+        class TreasureTempleGame {
     constructor() {
         this.socket = null;
         this.roomId = null;
@@ -68,14 +79,22 @@ class TreasureTempleGame {
         }
     }
 
-    // バイブレーション機能
+    // バイブレーション機能（修正版）
     vibrate(pattern) {
-        if (navigator.vibrate && 'ontouchstart' in window) {
+        // モバイルデバイスかつバイブレーション機能が利用可能かチェック
+        if (navigator.vibrate && (typeof window.DeviceMotionEvent !== 'undefined' || 'ontouchstart' in window)) {
             try {
-                navigator.vibrate(pattern);
+                // バイブレーションを実行
+                const result = navigator.vibrate(pattern);
+                console.log('Vibration result:', result, 'Pattern:', pattern);
+                return result;
             } catch (error) {
-                console.warn('Vibration not supported:', error);
+                console.warn('Vibration error:', error);
+                return false;
             }
+        } else {
+            console.log('Vibration not supported on this device');
+            return false;
         }
     }
 
@@ -97,6 +116,10 @@ class TreasureTempleGame {
         document.getElementById('return-to-lobby').addEventListener('click', () => this.returnToLobby());
         document.getElementById('refresh-rooms').addEventListener('click', () => {
             this.socketClient.getRoomList();
+        });
+        
+        document.getElementById('refresh-ongoing').addEventListener('click', () => {
+            this.socketClient.getOngoingGames();
         });
 
         document.getElementById('send-chat').addEventListener('click', () => this.sendChat());
@@ -478,7 +501,7 @@ class TreasureTempleGame {
         if (myRole === 'adventurer') {
             roleCard.className = 'role-card role-adventurer compact';
             roleText.textContent = '⛏️ 探検家 (Explorer)';
-            roleDesc.textContent = `豚に変えられた子供を${this.gameData.treasureGoal || 7}人すべて救出することが目標です！`;
+            roleDesc.textContent = `子豚に変えられた子供を${this.gameData.treasureGoal || 7}匹すべて救出することが目標です！`;
             roleImage.src = '/images/role-adventurer.png';
             roleImage.alt = '探検家';
             // 画像が読み込めない場合のフォールバック
@@ -493,7 +516,7 @@ class TreasureTempleGame {
         } else if (myRole === 'guardian') {
             roleCard.className = 'role-card role-guardian compact';
             roleText.textContent = '🐷 豚男 (Pig Man)';
-            roleDesc.textContent = `罠を${this.gameData.trapGoal || 2}個すべて発動させるか、4ラウンド終了まで子供たちを隠し続けることが目標です！`;
+            roleDesc.textContent = `罠を${this.gameData.trapGoal || 2}個すべて発動させるか、4ラウンド終了まで子豚たちを隠し続けることが目標です！`;
             roleImage.src = '/images/role-guardian.png';
             roleImage.alt = '豚男';
             // 画像が読み込めない場合のフォールバック
