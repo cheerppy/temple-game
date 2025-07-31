@@ -12,11 +12,13 @@ class UIManager {
                 document.body.appendChild(indicator);
             }
             
+            // ゲームボードに観戦モードのスタイルを適用
             const gameBoard = document.getElementById('game-board');
             if (gameBoard) {
                 gameBoard.classList.add('spectator-mode');
             }
             
+            // 観戦者用の情報を表示
             this.addSpectatorInfo();
         } else {
             if (existingIndicator) {
@@ -59,6 +61,8 @@ class UIManager {
 
     static showConnectionStatus(status) {
         const statusEl = document.getElementById('connection-status');
+        if (!statusEl) return;
+        
         if (status === 'connected') {
             statusEl.textContent = '🟢 接続済み';
             statusEl.className = 'connection-status connected';
@@ -70,6 +74,8 @@ class UIManager {
 
     static showError(message, type = 'error') {
         const errorEl = document.getElementById('error-message');
+        if (!errorEl) return;
+        
         errorEl.textContent = message;
         
         // エラータイプに応じてスタイルを変更
@@ -95,12 +101,19 @@ class UIManager {
     }
 
     static showPlayerName(name) {
-        document.getElementById('player-name-display').style.display = 'block';
-        document.getElementById('my-name').textContent = name;
+        const displayEl = document.getElementById('player-name-display');
+        const nameEl = document.getElementById('my-name');
+        
+        if (displayEl && nameEl) {
+            displayEl.style.display = 'block';
+            nameEl.textContent = name;
+        }
     }
 
     static updateRoomList(rooms) {
         const container = document.getElementById('room-list-container');
+        if (!container) return;
+        
         container.innerHTML = '';
 
         if (rooms.length === 0) {
@@ -110,41 +123,34 @@ class UIManager {
 
         rooms.forEach(room => {
             const roomDiv = document.createElement('div');
-            roomDiv.className = 'game-item waiting-room';
+            roomDiv.className = 'room-item';
             
             const infoDiv = document.createElement('div');
-            infoDiv.className = 'game-item-info';
+            infoDiv.className = 'room-item-info';
             infoDiv.innerHTML = `
-                <div class="game-header">
-                    <strong>🏠 ${room.id}</strong>
-                    ${room.hasPassword ? '<span class="password-icon">🔒</span>' : ''}
-                    <span class="status-badge waiting">待機中</span>
-                </div>
-                <div class="game-details">
-                    <span>👑 ${room.hostName}</span>
-                    <span>👥 ${room.playerCount}/10</span>
-                </div>
+                <strong>ID: ${room.id}</strong>
+                ${room.hasPassword ? '<span class="password-icon">🔒</span>' : ''}
+                <br>
+                ホスト: ${room.hostName} | プレイヤー: ${room.playerCount}/10
             `;
             
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'game-actions';
-            
             const joinBtn = document.createElement('button');
-            joinBtn.className = 'btn btn-small btn-primary';
-            joinBtn.textContent = '🚪 参加';
+            joinBtn.className = 'btn btn-small';
+            joinBtn.textContent = '参加';
             joinBtn.onclick = () => {
                 this.showNameInputModal(room.id, room.hasPassword);
             };
             
-            actionsDiv.appendChild(joinBtn);
             roomDiv.appendChild(infoDiv);
-            roomDiv.appendChild(actionsDiv);
+            roomDiv.appendChild(joinBtn);
             container.appendChild(roomDiv);
         });
     }
 
     static updateOngoingGames(games) {
         const container = document.getElementById('ongoing-games-container');
+        if (!container) return;
+        
         container.innerHTML = '';
 
         if (games.length === 0) {
@@ -154,53 +160,39 @@ class UIManager {
 
         games.forEach(game => {
             const gameDiv = document.createElement('div');
-            gameDiv.className = 'game-item ongoing-game';
+            gameDiv.className = 'ongoing-game-item';
             
             const infoDiv = document.createElement('div');
-            infoDiv.className = 'game-item-info';
+            infoDiv.className = 'ongoing-game-info';
             infoDiv.innerHTML = `
-                <div class="game-header">
-                    <strong>🎮 ${game.id}</strong>
-                    <span class="status-badge playing">進行中</span>
-                </div>
-                <div class="game-details">
-                    <span>📊 R${game.currentRound}/4</span>
-                    <span>👥 ${game.playerCount}/10</span>
-                </div>
-                <div class="game-progress">
-                    <span>💰 ${game.treasureFound}/${game.treasureGoal}</span>
-                    <span>💀 ${game.trapTriggered}/${game.trapGoal}</span>
-                </div>
+                <strong>ID: ${game.id}</strong>
+                <br>
+                ラウンド: ${game.currentRound}/4 | プレイヤー: ${game.playerCount}/10
+                <br>
+                救出: ${game.treasureFound}/${game.treasureGoal} | 罠: ${game.trapTriggered}/${game.trapGoal}
             `;
             
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'game-actions';
-            
-            // 観戦ボタン
             const spectateBtn = document.createElement('button');
-            spectateBtn.className = 'btn btn-small btn-secondary';
-            spectateBtn.textContent = '👁️ 観戦';
+            spectateBtn.className = 'btn btn-small';
+            spectateBtn.textContent = '観戦する';
             spectateBtn.onclick = () => {
-                document.getElementById('spectate-room-id').value = game.id;
+                const spectateRoomInput = document.getElementById('spectate-room-id');
+                const spectatorNameInput = document.getElementById('spectator-name');
+                
+                if (spectateRoomInput) spectateRoomInput.value = game.id;
+                
+                // 観戦者名を自動生成
                 const spectatorName = `観戦者${Math.floor(Math.random() * 1000)}`;
-                document.getElementById('spectator-name').value = spectatorName;
+                if (spectatorNameInput) spectatorNameInput.value = spectatorName;
+                
+                // 観戦開始
                 if (window.game) {
                     window.game.spectateRoom();
                 }
             };
             
-            // 再入場ボタン
-            const rejoinBtn = document.createElement('button');
-            rejoinBtn.className = 'btn btn-small btn-primary';
-            rejoinBtn.textContent = '🔄 再入場';
-            rejoinBtn.onclick = () => {
-                this.showRejoinModal(game.id);
-            };
-            
-            actionsDiv.appendChild(spectateBtn);
-            actionsDiv.appendChild(rejoinBtn);
             gameDiv.appendChild(infoDiv);
-            gameDiv.appendChild(actionsDiv);
+            gameDiv.appendChild(spectateBtn);
             container.appendChild(gameDiv);
         });
     }
@@ -209,89 +201,57 @@ class UIManager {
         const modal = document.getElementById('name-input-modal');
         const nameInput = document.getElementById('modal-player-name');
         
+        if (!modal || !nameInput) return;
+        
+        // モーダルを表示
         modal.style.display = 'flex';
         nameInput.focus();
         
+        // パスワードが必要な場合はルーム参加画面のパスワード欄を表示
         if (hasPassword) {
-            document.getElementById('join-password-group').style.display = 'block';
+            const passwordGroup = document.getElementById('join-password-group');
+            if (passwordGroup) passwordGroup.style.display = 'block';
         }
         
-        document.getElementById('room-id-input').value = roomId;
+        // ルームIDを設定
+        const roomIdInput = document.getElementById('room-id-input');
+        if (roomIdInput) roomIdInput.value = roomId;
         
-        document.getElementById('modal-join-btn').onclick = () => {
-            const playerName = nameInput.value.trim();
-            if (!playerName) {
-                this.showError('プレイヤー名を入力してください');
-                return;
-            }
-            
-            document.getElementById('player-name-join').value = playerName;
-            modal.style.display = 'none';
-            
-            if (window.game) {
-                window.game.joinRoom();
-            }
-        };
+        // モーダルのボタンイベント設定
+        const joinBtn = document.getElementById('modal-join-btn');
+        if (joinBtn) {
+            joinBtn.onclick = () => {
+                const playerName = nameInput.value.trim();
+                if (!playerName) {
+                    this.showError('プレイヤー名を入力してください');
+                    return;
+                }
+                
+                // プレイヤー名を設定して参加
+                const playerNameJoinInput = document.getElementById('player-name-join');
+                if (playerNameJoinInput) playerNameJoinInput.value = playerName;
+                modal.style.display = 'none';
+                
+                // ゲーム参加処理
+                if (window.game) {
+                    window.game.joinRoom();
+                }
+            };
+        }
         
-        document.getElementById('modal-cancel-btn').onclick = () => {
-            modal.style.display = 'none';
-            nameInput.value = '';
-        };
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.onclick = () => {
+                modal.style.display = 'none';
+                nameInput.value = '';
+            };
+        }
         
+        // Enterキーで参加
         nameInput.onkeypress = (e) => {
             if (e.key === 'Enter') {
-                document.getElementById('modal-join-btn').click();
-            }
-        };
-    }
-
-    // 再入場モーダルを表示
-    static showRejoinModal(roomId) {
-        const modal = document.createElement('div');
-        modal.className = 'name-input-modal';
-        modal.innerHTML = `
-            <div class="name-input-content">
-                <h3>ゲームに再入場</h3>
-                <div class="input-group">
-                    <label>プレイヤー名:</label>
-                    <input type="text" id="rejoin-modal-name" placeholder="元のプレイヤー名を入力">
-                </div>
-                <div class="name-input-buttons">
-                    <button id="rejoin-modal-btn" class="btn btn-primary">🔄 再入場</button>
-                    <button id="rejoin-cancel-btn" class="btn btn-secondary">キャンセル</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        modal.style.display = 'flex';
-        
-        const nameInput = document.getElementById('rejoin-modal-name');
-        nameInput.focus();
-        
-        document.getElementById('rejoin-modal-btn').onclick = () => {
-            const playerName = nameInput.value.trim();
-            if (!playerName) {
-                this.showError('プレイヤー名を入力してください');
-                return;
-            }
-            
-            document.getElementById('rejoin-player-name').value = playerName;
-            document.getElementById('rejoin-room-id').value = roomId;
-            modal.remove();
-            
-            if (window.game) {
-                window.game.rejoinRoom();
-            }
-        };
-        
-        document.getElementById('rejoin-cancel-btn').onclick = () => {
-            modal.remove();
-        };
-        
-        nameInput.onkeypress = (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('rejoin-modal-btn').click();
+                const joinBtn = document.getElementById('modal-join-btn');
+                if (joinBtn) joinBtn.click();
             }
         };
     }
@@ -300,33 +260,44 @@ class UIManager {
         const gameRoomIdEl = document.getElementById('game-room-id');
         const gameRoomIdTextEl = document.getElementById('game-room-id-text');
         
-        if (roomId) {
-            gameRoomIdTextEl.textContent = roomId;
-            gameRoomIdEl.style.display = 'block';
-        } else {
-            gameRoomIdEl.style.display = 'none';
+        if (gameRoomIdEl && gameRoomIdTextEl) {
+            if (roomId) {
+                gameRoomIdTextEl.textContent = roomId;
+                gameRoomIdEl.style.display = 'block';
+            } else {
+                gameRoomIdEl.style.display = 'none';
+            }
         }
     }
 
     static showScreen(screenName) {
         // すべての画面を非表示
-        document.getElementById('lobby').style.display = 'none';
-        document.getElementById('room-info').style.display = 'none';
-        document.getElementById('game-board').style.display = 'none';
-        document.getElementById('victory-screen').style.display = 'none';
+        const screens = ['lobby', 'room-info', 'game-board', 'victory-screen'];
+        
+        screens.forEach(screen => {
+            const element = document.getElementById(screen);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
         
         // 指定された画面を表示
         if (screenName) {
             const screen = document.getElementById(screenName);
-            if (screen) screen.style.display = 'block';
+            if (screen) {
+                screen.style.display = 'block';
+            }
         }
     }
 
     static updatePlayersList(players, hostId) {
         const container = document.getElementById('players-list');
-        const count = players.filter(p => p.connected).length;
+        const countEl = document.getElementById('player-count');
         
-        document.getElementById('player-count').textContent = count;
+        if (!container || !countEl) return;
+        
+        const count = players.filter(p => p.connected).length;
+        countEl.textContent = count;
         
         container.innerHTML = '';
         players.forEach((player) => {
@@ -340,6 +311,7 @@ class UIManager {
             const disconnectedText = player.connected ? '' : ' (切断中)';
             div.textContent = `${status} ${player.name}${disconnectedText}`;
             
+            // 切断中のプレイヤーは薄く表示
             if (!player.connected) {
                 div.style.opacity = '0.6';
                 div.style.fontStyle = 'italic';
@@ -411,7 +383,10 @@ class UIManager {
                 if (i < treasureFound) {
                     icon.classList.add('used');
                 }
-                icon.textContent = i < treasureFound ? '👶' : '🐷';
+                
+                // 画像読み込みエラー時のフォールバック処理
+                this.setupIconFallback(icon, 'treasure', i < treasureFound);
+                
                 treasureContainer.appendChild(icon);
             }
         }
@@ -426,13 +401,26 @@ class UIManager {
                 if (i < trapTriggered) {
                     icon.classList.add('used');
                 }
-                icon.textContent = '💀';
-                if (i < trapTriggered) {
-                    icon.style.filter = 'grayscale(100%) brightness(0.7)';
-                }
+                
+                // 画像読み込みエラー時のフォールバック処理
+                this.setupIconFallback(icon, 'trap', i < trapTriggered);
+                
                 trapContainer.appendChild(icon);
             }
         }
+    }
+
+    // アイコンの画像読み込みエラー時のフォールバック処理
+    static setupIconFallback(icon, type, isUsed) {
+        // 画像が読み込まれない場合のタイマー
+        setTimeout(() => {
+            const hasBackground = window.getComputedStyle(icon).backgroundImage !== 'none';
+            if (!hasBackground) {
+                // 画像が読み込まれていない場合は絵文字表示に切り替え
+                icon.classList.add('emoji-only');
+                console.log(`${type} icon fallback to emoji`);
+            }
+        }, 1000);
     }
 
     static updateGameInfo(gameData) {
@@ -442,16 +430,19 @@ class UIManager {
             'trap-triggered': gameData.trapTriggered || 0,
             'trap-goal': gameData.trapGoal || 2,
             'cards-per-player': gameData.cardsPerPlayer || 5,
-            'cards-flipped': gameData.cardsFlippedThisRound || 0,
-            'treasure-goal': gameData.treasureGoal || 7
+            'cards-flipped': gameData.cardsFlippedThisRound || 0
         };
 
         Object.entries(elements).forEach(([id, value]) => {
             const element = document.getElementById(id);
-            if (element) {
-                element.textContent = value;
-            }
+            if (element) element.textContent = value;
         });
+        
+        // 財宝目標も更新
+        const treasureGoalEl = document.getElementById('treasure-goal');
+        if (treasureGoalEl) {
+            treasureGoalEl.textContent = gameData.treasureGoal || 7;
+        }
     }
 
     static showRoundStart(roundNumber) {
