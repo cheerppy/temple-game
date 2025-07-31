@@ -1,15 +1,4 @@
-updateGameUI() {
-        UIManager.showScreen('game-board');
-        
-        // ゲーム中のルームID表示
-        UIManager.showGameRoomId(this.roomId);
-
-        UIManager.updateGameOverview(this.gameData.players.length);
-        UIManager.updateProgressBars(this.gameData);
-        UIManager.updateGameInfo(this.gameData);
-
-        const keyHolder = this.gameData.players.find(p => p.id === this.gameData.keyHolderId);
-        class TreasureTempleGame {
+class TreasureTempleGame {
     constructor() {
         this.socket = null;
         this.roomId = null;
@@ -280,7 +269,18 @@ updateGameUI() {
         if (this.gameData && this.gameData.gameState === 'playing') {
             document.getElementById('temp-leave-section').style.display = 'block';
             // ルーム情報画面に切り替え
-            UIManager.showScreen('room-info');
+            UIManager.showScreen('lobby');
+    }
+
+    returnToLobby() {
+        this.leaveRoom();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const game = new TreasureTempleGame();
+    window.game = game;
+});room-info');
             document.getElementById('room-id-display').textContent = this.roomId;
         } else {
             this.leaveRoom();
@@ -447,6 +447,9 @@ updateGameUI() {
 
     updateGameUI() {
         UIManager.showScreen('game-board');
+        
+        // ゲーム中のルームID表示
+        UIManager.showGameRoomId(this.roomId);
 
         UIManager.updateGameOverview(this.gameData.players.length);
         UIManager.updateProgressBars(this.gameData);
@@ -776,15 +779,4 @@ updateGameUI() {
         this.clearPlayerInfo();
         
         UIManager.showSpectatorMode(false);
-        UIManager.showScreen('lobby');
-    }
-
-    returnToLobby() {
-        this.leaveRoom();
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const game = new TreasureTempleGame();
-    window.game = game;
-});
+        UIManager.showScreen('
