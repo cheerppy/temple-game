@@ -267,10 +267,16 @@ class TreasureTempleGame {
     // 一時退出ダイアログを表示
     showTempLeaveDialog() {
         if (this.gameData && this.gameData.gameState === 'playing') {
-            document.getElementById('temp-leave-section').style.display = 'block';
+            const tempLeaveSection = document.getElementById('temp-leave-section');
+            if (tempLeaveSection) {
+                tempLeaveSection.style.display = 'block';
+            }
             // ルーム情報画面に切り替え
             UIManager.showScreen('room-info');
-            document.getElementById('room-id-display').textContent = this.roomId;
+            const roomIdDisplay = document.getElementById('room-id-display');
+            if (roomIdDisplay && this.roomId) {
+                roomIdDisplay.textContent = this.roomId;
+            }
         } else {
             this.leaveRoom();
         }
@@ -278,7 +284,10 @@ class TreasureTempleGame {
 
     // 一時退出をキャンセル
     cancelTempLeave() {
-        document.getElementById('temp-leave-section').style.display = 'none';
+        const tempLeaveSection = document.getElementById('temp-leave-section');
+        if (tempLeaveSection) {
+            tempLeaveSection.style.display = 'none';
+        }
         // ゲーム画面に戻る
         if (this.gameData && this.gameData.gameState === 'playing') {
             UIManager.showScreen('game-board');
@@ -321,8 +330,11 @@ class TreasureTempleGame {
 
     // 再入場情報をUIに自動入力
     populateRejoinInfo(rejoinInfo) {
-        document.getElementById('rejoin-player-name').value = rejoinInfo.playerName;
-        document.getElementById('rejoin-room-id').value = rejoinInfo.roomId;
+        const rejoinPlayerNameEl = document.getElementById('rejoin-player-name');
+        const rejoinRoomIdEl = document.getElementById('rejoin-room-id');
+        
+        if (rejoinPlayerNameEl) rejoinPlayerNameEl.value = rejoinInfo.playerName;
+        if (rejoinRoomIdEl) rejoinRoomIdEl.value = rejoinInfo.roomId;
     }
 
     // ルーム作成成功時
@@ -400,7 +412,10 @@ class TreasureTempleGame {
         if (!this.gameData) return;
 
         // 財宝目標をUIに反映
-        document.getElementById('treasure-goal').textContent = this.gameData.treasureGoal || 7;
+        const treasureGoalEl = document.getElementById('treasure-goal');
+        if (treasureGoalEl) {
+            treasureGoalEl.textContent = this.gameData.treasureGoal || 7;
+        }
 
         UIManager.updatePlayersList(this.gameData.players, this.gameData.host);
 
@@ -448,11 +463,16 @@ class TreasureTempleGame {
         UIManager.updateGameInfo(this.gameData);
 
         const keyHolder = this.gameData.players.find(p => p.id === this.gameData.keyHolderId);
-        document.getElementById('key-holder-name').textContent = keyHolder?.name || '不明';
+        const keyHolderNameEl = document.getElementById('key-holder-name');
+        if (keyHolderNameEl) {
+            keyHolderNameEl.textContent = keyHolder?.name || '不明';
+        }
         
         const isMyTurn = this.gameData.keyHolderId === this.mySocketId;
-        document.getElementById('turn-message').textContent = 
-            isMyTurn ? 'あなたのターンです！他のプレイヤーのカードを選んでください' : '待機中...';
+        const turnMessageEl = document.getElementById('turn-message');
+        if (turnMessageEl) {
+            turnMessageEl.textContent = isMyTurn ? 'あなたのターンです！他のプレイヤーのカードを選んでください' : '待機中...';
+        }
 
         this.showPlayerRole();
         this.renderMyCards();
@@ -528,17 +548,20 @@ class TreasureTempleGame {
 
     renderMyCards() {
         // 観戦者の場合は自分のカードセクションを非表示
+        const myCardsSection = document.querySelector('.my-cards-section');
         if (this.isSpectator) {
-            document.querySelector('.my-cards-section').style.display = 'none';
+            if (myCardsSection) myCardsSection.style.display = 'none';
             return;
         } else {
-            document.querySelector('.my-cards-section').style.display = 'block';
+            if (myCardsSection) myCardsSection.style.display = 'block';
         }
 
         const myPlayer = this.gameData.players.find(p => p.id === this.mySocketId);
         if (!myPlayer || !myPlayer.hand) return;
 
         const container = document.getElementById('my-cards-grid');
+        if (!container) return;
+        
         container.innerHTML = '';
 
         let treasureCount = 0, trapCount = 0, emptyCount = 0;
@@ -611,13 +634,19 @@ class TreasureTempleGame {
             container.appendChild(div);
         });
 
-        document.getElementById('my-treasure').textContent = treasureCount;
-        document.getElementById('my-trap').textContent = trapCount;
-        document.getElementById('my-empty').textContent = emptyCount;
+        const myTreasureEl = document.getElementById('my-treasure');
+        const myTrapEl = document.getElementById('my-trap');
+        const myEmptyEl = document.getElementById('my-empty');
+        
+        if (myTreasureEl) myTreasureEl.textContent = treasureCount;
+        if (myTrapEl) myTrapEl.textContent = trapCount;
+        if (myEmptyEl) myEmptyEl.textContent = emptyCount;
     }
 
     renderOtherPlayers(isMyTurn) {
         const container = document.getElementById('other-players-container');
+        if (!container) return;
+        
         container.innerHTML = '';
 
         this.gameData.players.forEach((player) => {
@@ -661,69 +690,71 @@ class TreasureTempleGame {
             const cardsGrid = document.createElement('div');
             cardsGrid.className = 'other-player-cards';
 
-            player.hand.forEach((card, index) => {
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'other-card';
-                
-                if (card.revealed) {
-                    cardDiv.classList.add('revealed', card.type);
-                    const img = document.createElement('img');
-                    img.className = 'other-card-image';
-                    img.src = `/images/card-${card.type}-medium.png`;
-                    img.alt = card.type;
+            if (player.hand) {
+                player.hand.forEach((card, index) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'other-card';
                     
-                    // 画像が読み込めない場合のフォールバック
-                    img.onerror = () => {
-                        img.style.display = 'none';
-                        const emoji = document.createElement('div');
-                        emoji.style.fontSize = '1.5em';
-                        emoji.style.textAlign = 'center';
-                        emoji.style.lineHeight = '1';
-                        switch (card.type) {
-                            case 'treasure':
-                                emoji.textContent = '🐷';
-                                break;
-                            case 'trap':
-                                emoji.textContent = '💀';
-                                break;
-                            case 'empty':
-                                emoji.textContent = '🏠';
-                                break;
-                        }
-                        cardDiv.appendChild(emoji);
-                    };
-                    
-                    cardDiv.appendChild(img);
-                } else {
-                    const img = document.createElement('img');
-                    img.className = 'other-card-image';
-                    img.src = '/images/card-back-medium.png';
-                    img.alt = 'カード裏面';
-                    
-                    // 画像が読み込めない場合のフォールバック
-                    img.onerror = () => {
-                        img.style.display = 'none';
-                        const emoji = document.createElement('div');
-                        emoji.textContent = '❓';
-                        emoji.style.fontSize = '1.5em';
-                        emoji.style.textAlign = 'center';
-                        emoji.style.lineHeight = '1';
-                        cardDiv.appendChild(emoji);
-                    };
-                    
-                    cardDiv.appendChild(img);
-                    
-                    if (isMyTurn && !card.revealed && player.connected) {
-                        cardDiv.addEventListener('click', () => {
-                            this.selectCard(player.id, index);
-                        });
+                    if (card.revealed) {
+                        cardDiv.classList.add('revealed', card.type);
+                        const img = document.createElement('img');
+                        img.className = 'other-card-image';
+                        img.src = `/images/card-${card.type}-medium.png`;
+                        img.alt = card.type;
+                        
+                        // 画像が読み込めない場合のフォールバック
+                        img.onerror = () => {
+                            img.style.display = 'none';
+                            const emoji = document.createElement('div');
+                            emoji.style.fontSize = '1.5em';
+                            emoji.style.textAlign = 'center';
+                            emoji.style.lineHeight = '1';
+                            switch (card.type) {
+                                case 'treasure':
+                                    emoji.textContent = '🐷';
+                                    break;
+                                case 'trap':
+                                    emoji.textContent = '💀';
+                                    break;
+                                case 'empty':
+                                    emoji.textContent = '🏠';
+                                    break;
+                            }
+                            cardDiv.appendChild(emoji);
+                        };
+                        
+                        cardDiv.appendChild(img);
                     } else {
-                        cardDiv.classList.add('disabled');
+                        const img = document.createElement('img');
+                        img.className = 'other-card-image';
+                        img.src = '/images/card-back-medium.png';
+                        img.alt = 'カード裏面';
+                        
+                        // 画像が読み込めない場合のフォールバック
+                        img.onerror = () => {
+                            img.style.display = 'none';
+                            const emoji = document.createElement('div');
+                            emoji.textContent = '❓';
+                            emoji.style.fontSize = '1.5em';
+                            emoji.style.textAlign = 'center';
+                            emoji.style.lineHeight = '1';
+                            cardDiv.appendChild(emoji);
+                        };
+                        
+                        cardDiv.appendChild(img);
+                        
+                        if (isMyTurn && !card.revealed && player.connected) {
+                            cardDiv.addEventListener('click', () => {
+                                this.selectCard(player.id, index);
+                            });
+                        } else {
+                            cardDiv.classList.add('disabled');
+                        }
                     }
-                }
-                
-                cardsGrid.appendChild(cardDiv);
-            });
+                    
+                    cardsGrid.appendChild(cardDiv);
+                });
+            }
 
             playerBox.appendChild(cardsGrid);
             container.appendChild(playerBox);
