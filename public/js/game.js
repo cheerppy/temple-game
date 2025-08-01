@@ -88,33 +88,57 @@ class TreasureTempleGame {
     }
 
     initializeEventListeners() {
-        document.getElementById('use-password').addEventListener('change', (e) => {
-            document.getElementById('password-group').style.display = 
-                e.target.checked ? 'block' : 'none';
+        // 安全にイベントリスナーを追加するヘルパー関数
+        const safeAddEventListener = (id, event, handler) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.warn(`要素が見つかりません: #${id}`);
+            }
+        };
+
+        // パスワード表示切り替え
+        safeAddEventListener('use-password', 'change', (e) => {
+            const passwordGroup = document.getElementById('password-group');
+            if (passwordGroup) {
+                passwordGroup.style.display = e.target.checked ? 'block' : 'none';
+            }
         });
 
-        document.getElementById('create-room').addEventListener('click', () => this.createRoom());
-        document.getElementById('join-room').addEventListener('click', () => this.joinRoom());
-        document.getElementById('rejoin-room').addEventListener('click', () => this.rejoinRoom());
-        document.getElementById('spectate-room').addEventListener('click', () => this.spectateRoom());
-        document.getElementById('leave-room').addEventListener('click', () => this.leaveRoom());
-        document.getElementById('temp-leave-room').addEventListener('click', () => this.tempLeaveRoom());
-        document.getElementById('cancel-temp-leave').addEventListener('click', () => this.cancelTempLeave());
-        document.getElementById('game-leave-room').addEventListener('click', () => this.showTempLeaveDialog());
-        document.getElementById('start-game').addEventListener('click', () => this.startGame());
-        document.getElementById('return-to-lobby').addEventListener('click', () => this.returnToLobby());
-        document.getElementById('refresh-rooms').addEventListener('click', () => {
+        // ルーム操作
+        safeAddEventListener('create-room', 'click', () => this.createRoom());
+        safeAddEventListener('join-room', 'click', () => this.joinRoom());
+        safeAddEventListener('rejoin-room', 'click', () => this.rejoinRoom());
+        safeAddEventListener('spectate-room', 'click', () => this.spectateRoom());
+        safeAddEventListener('leave-room', 'click', () => this.leaveRoom());
+        safeAddEventListener('temp-leave-room', 'click', () => this.tempLeaveRoom());
+        safeAddEventListener('cancel-temp-leave', 'click', () => this.cancelTempLeave());
+        safeAddEventListener('game-leave-room', 'click', () => this.showTempLeaveDialog());
+        safeAddEventListener('start-game', 'click', () => this.startGame());
+        safeAddEventListener('return-to-lobby', 'click', () => this.returnToLobby());
+        
+        // 勝利画面からのロビー復帰
+        safeAddEventListener('return-to-lobby-victory', 'click', () => this.returnToLobby());
+
+        // リフレッシュボタン（存在する場合のみ）
+        safeAddEventListener('refresh-rooms', 'click', () => {
             this.socketClient.getRoomList();
         });
         
-        document.getElementById('refresh-ongoing').addEventListener('click', () => {
+        safeAddEventListener('refresh-ongoing', 'click', () => {
             this.socketClient.getOngoingGames();
         });
 
-        document.getElementById('send-chat').addEventListener('click', () => this.sendChat());
-        document.getElementById('chat-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendChat();
-        });
+        // チャット（存在する場合のみ）
+        safeAddEventListener('send-chat', 'click', () => this.sendChat());
+        
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.sendChat();
+            });
+        }
 
         // ページ離脱時の警告
         window.addEventListener('beforeunload', (e) => {
@@ -124,6 +148,8 @@ class TreasureTempleGame {
                 return e.returnValue;
             }
         });
+
+        console.log('イベントリスナーの初期化完了');
     }
 
     // 再接続処理
@@ -773,6 +799,8 @@ class TreasureTempleGame {
 
     sendChat() {
         const input = document.getElementById('chat-input');
+        if (!input) return;
+        
         const message = input.value.trim();
         
         if (!message || !this.roomId) return;
@@ -811,6 +839,26 @@ class TreasureTempleGame {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new TreasureTempleGame();
-    window.game = game;
+    console.log('DOM読み込み完了');
+    
+    // DOM要素の存在確認
+    const requiredElements = ['lobby', 'room-info', 'game-board', 'error-message'];
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+        console.error('必須要素が不足:', missingElements);
+        alert('ページの読み込みに問題があります。ページをリロードしてください。');
+        return;
+    }
+    
+    console.log('必須要素確認完了');
+    
+    try {
+        const game = new TreasureTempleGame();
+        window.game = game;
+        console.log('ゲーム初期化完了');
+    } catch (error) {
+        console.error('ゲーム初期化エラー:', error);
+        alert('ゲームの初期化に失敗しました: ' + error.message);
+    }
 });
