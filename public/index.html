@@ -3,674 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豚小屋に入らずんば子豚を得ず - 恐怖の豚男</title>
+    <title>豚小屋探検隊 - 豚小屋に入らずんば子豚を得ず</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
             background: linear-gradient(135deg, #04384c 0%, #022838 50%, #011825 100%);
-            color: #e8f4f8;
-            min-height: 100vh;
-            padding: 10px;
-            font-size: 14px;
+            color: #e8f4f8; 
+            min-height: 100vh; 
+            padding: 10px; 
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* ヘッダー */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .header h1 {
-            font-size: clamp(1.5em, 4vw, 2.2em);
-            color: #FFD700;
-            text-shadow: 2px 2px 4px #04384c;
-            margin-bottom: 8px;
-            line-height: 1.2;
-        }
-
-        .subtitle {
-            font-size: clamp(1em, 3vw, 1.2em);
-            color: #DC143C;
-            font-style: italic;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-        }
-
-        /* 接続状態とプレイヤー名 */
-        .connection-status, .player-name-display {
-            position: fixed;
-            top: 10px;
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-weight: bold;
-            z-index: 100;
-            font-size: 12px;
-        }
-
-        .connection-status {
-            right: 10px;
-        }
-
-        .connection-status.connected {
-            background: rgba(34, 139, 34, 0.9);
-            color: white;
-        }
-
-        .connection-status.disconnected {
-            background: rgba(220, 20, 60, 0.9);
-            color: white;
-        }
-
-        .player-name-display {
-            left: 10px;
-            background: rgba(255, 215, 0, 0.2);
-            border: 2px solid #FFD700;
-        }
-
-        /* ボタンスタイル */
-        .btn {
-            background: linear-gradient(45deg, #04384c, #065a7a);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(4, 56, 76, 0.4);
-            width: 100%;
-            min-height: 44px;
-        }
-
-        .btn:hover, .btn:active {
-            background: linear-gradient(45deg, #065a7a, #0876a0);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(4, 56, 76, 0.6);
-        }
-
-        .btn:disabled {
-            background: #2a2a2a;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 12px;
-            width: auto;
-            min-height: 36px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #228B22, #32CD32);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(45deg, #8B0000, #DC143C);
-        }
-
-        /* ロビー */
-        .lobby {
-            background: rgba(4, 56, 76, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 2px solid rgba(135, 206, 235, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .room-controls {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .control-section {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid rgba(135, 206, 235, 0.2);
-        }
-
-        .control-section h3 {
-            color: #87CEEB;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #87CEEB;
-            font-size: 13px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #04384c;
-            border-radius: 5px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #e8f4f8;
-            font-size: 16px;
-            min-height: 44px;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #87CEEB;
-            box-shadow: 0 0 10px rgba(135, 206, 235, 0.3);
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            min-height: 44px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-
-        /* ルール表示 */
-        .info-box {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border: 2px solid #87CEEB;
-        }
-
-        .info-box h3 {
-            color: #FFD700;
-            margin-bottom: 10px;
-        }
-
-        .rule-toggle {
-            text-align: center;
-        }
-
-        .rules-list {
-            margin: 15px 0 0 20px;
-            text-align: left;
-        }
-
-        .rules-list li {
-            margin: 8px 0;
-            line-height: 1.4;
-        }
-
-        /* ゲーム一覧 */
-        .games-list {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border: 2px solid rgba(135, 206, 235, 0.2);
-        }
-
-        .games-list h3 {
-            color: #87CEEB;
-            margin-bottom: 15px;
-        }
-
-        .refresh-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .section-title {
-            color: #FFD700;
-            margin: 20px 0 10px 0;
-            font-size: 14px;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-            padding-bottom: 5px;
-        }
-
-        .section-title:first-child {
-            margin-top: 0;
-        }
-
-        /* 統合されたゲームアイテムスタイル */
-        .game-item {
-            background: rgba(4, 56, 76, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(135, 206, 235, 0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .game-item:hover {
-            background: rgba(4, 56, 76, 0.5);
-            transform: translateX(5px);
-        }
-
-        .game-item.waiting-room {
-            border-left: 4px solid #87CEEB;
-        }
-
-        .game-item.ongoing-game {
-            border-left: 4px solid #32CD32;
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .game-details {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            font-size: 12px;
-            color: #87CEEB;
-            margin-bottom: 8px;
-        }
-
-        .game-progress {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            font-size: 12px;
-            color: #FFD700;
-            margin-bottom: 5px;
-        }
-
-        .status-badge {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .status-badge.waiting {
-            background: rgba(135, 206, 235, 0.8);
-            color: #04384c;
-        }
-
-        .status-badge.playing {
-            background: rgba(50, 205, 50, 0.8);
-            color: #004000;
-        }
-
-        .game-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .game-actions .btn {
-            flex: 1;
-            min-width: 80px;
-        }
-
-        .password-icon {
-            color: #FFD700;
-            margin-left: 10px;
-            font-size: 14px;
-        }
-
-        /* エラーメッセージ */
-        .error-message {
-            background: rgba(220, 20, 60, 0.9);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
-            display: none;
-            font-size: 14px;
-            border: 2px solid #DC143C;
-        }
-
-        /* 画面切り替え */
-        .screen {
-            display: none;
-        }
-
-        /* セクションの表示/非表示切り替え */
-        .hidden {
-            display: none !important;
-        }
-
-        /* モバイル対応のレスポンシブタイトル */
-        .title-desktop {
-            display: block;
-        }
-
-        .title-mobile {
-            display: none;
-        }
-
-        /* レスポンシブ対応 */
-        @media (max-width: 768px) {
-            body {
-                padding: 5px;
-                font-size: 13px;
-            }
-            
-            .container {
-                padding: 0;
-            }
-            
-            .header {
-                padding: 12px;
-                margin-bottom: 15px;
-            }
-            
-            .room-controls {
-                grid-template-columns: 1fr;
-            }
-
-            .title-desktop {
-                display: none;
-            }
-            
-            .title-mobile {
-                display: block;
-            }
-            
-            .title-mobile h1 {
-                font-size: 1.5em;
-                line-height: 1.2;
-                margin-bottom: 8px;
-            }
-            
-            .title-mobile .subtitle {
-                font-size: 1em;
-            }
-            
-            .refresh-buttons {
-                justify-content: flex-end;
-            }
-            
-            .game-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 5px;
-            }
-            
-            .game-details,
-            .game-progress {
-                justify-content: space-between;
-                width: 100%;
-            }
-            
-            .game-actions {
-                justify-content: space-between;
-            }
-            
-            .game-actions .btn {
-                min-width: 70px;
-                font-size: 12px;
-                padding: 8px 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .title-mobile h1 {
-                font-size: 1.3em;
-            }
-            
-            .title-mobile .subtitle {
-                font-size: 0.9em;
-            }
-            
-            .refresh-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .refresh-buttons .btn {
-                width: 100%;
-            }
-            
-            .game-header strong {
-                font-size: 14px;
-            }
-            
-            .game-actions {
-                flex-direction: column;
-            }
-            
-            .game-actions .btn {
-                width: 100%;
-                min-width: auto;
-            }
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(0, 0, 0, 0.7); border-radius: 15px; }
+        .header h1 { color: #FFD700; font-size: 2em; margin-bottom: 8px; }
+        .subtitle { color: #DC143C; font-style: italic; }
+        .connection-status, .player-name-display { position: fixed; top: 10px; padding: 8px 15px; border-radius: 15px; font-weight: bold; z-index: 100; font-size: 12px; }
+        .connection-status { right: 10px; background: rgba(220, 20, 60, 0.9); color: white; }
+        .connection-status.connected { background: rgba(34, 139, 34, 0.9); }
+        .player-name-display { left: 10px; background: rgba(255, 215, 0, 0.2); border: 2px solid #FFD700; display: none; }
+        .error-message { background: rgba(220, 20, 60, 0.9); color: white; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: center; display: none; }
+        .btn { background: linear-gradient(45deg, #04384c, #065a7a); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 5px; }
+        .btn:hover { background: linear-gradient(45deg, #065a7a, #0876a0); }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #87CEEB; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #04384c; border-radius: 5px; background: rgba(0, 0, 0, 0.7); color: #e8f4f8; font-size: 16px; }
+        .control-section { background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 10px; border: 2px solid rgba(135, 206, 235, 0.2); margin-bottom: 15px; }
+        .control-section h3 { color: #87CEEB; margin-bottom: 15px; }
+        #lobby, #room-info, #game-board, #victory-screen { display: none; }
+        #lobby { display: block; }
+        .room-id-display { background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; font-size: 1.5em; font-weight: bold; border: 2px solid rgba(255, 215, 0, 0.5); }
+        .players-list { background: rgba(4, 56, 76, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .player-item { padding: 10px; margin: 6px 0; background: rgba(0, 0, 0, 0.5); border-radius: 5px; }
+        .game-info { background: rgba(4, 56, 76, 0.5); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .my-cards-section { background: rgba(4, 56, 76, 0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .my-cards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .card { aspect-ratio: 3/4; border: 2px solid #04384c; border-radius: 8px; background: linear-gradient(135deg, #022838, #04384c); display: flex; align-items: center; justify-content: center; font-weight: bold; min-height: 60px; }
+        .other-players-container { margin-bottom: 15px; }
+        .other-player-box { background: rgba(0, 0, 0, 0.5); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 2px solid rgba(135, 206, 235, 0.2); }
+        .other-player-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .other-card { aspect-ratio: 3/4; border: 2px solid #04384c; border-radius: 6px; background: linear-gradient(135deg, #011825, #04384c); cursor: pointer; min-height: 45px; }
+        .victory-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.95); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        .victory-content { background: linear-gradient(135deg, #04384c, #022838); padding: 30px; border-radius: 20px; text-align: center; border: 3px solid #FFD700; max-width: 400px; width: 100%; }
     </style>
 </head>
 <body>
-    <!-- 接続状態表示 -->
-    <div id="connection-status" class="connection-status">接続中...</div>
+    <div class="connection-status disconnected" id="connection-status">🔴 未接続</div>
+    <div class="player-name-display" id="player-name-display">👤 <span id="my-name"></span></div>
     
-    <!-- プレイヤー名表示 -->
-    <div id="player-name-display" class="player-name-display" style="display: none;">
-        プレイヤー: <span id="my-name"></span>
-    </div>
-
-    <!-- 観戦者表示 -->
-    <div id="spectator-indicator" class="spectator-indicator" style="display: none;">
-        👁️ 観戦中
-    </div>
-
-    <!-- ゲーム中のルームID表示 -->
-    <div id="game-room-id" class="game-room-id" style="display: none;">
-        ルームID: <span id="game-room-id-text"></span>
-    </div>
-
     <div class="container">
-        <!-- モバイル対応ヘッダー -->
         <div class="header">
-            <!-- PCサイズのタイトル -->
-            <div class="title-desktop">
-                <h1>🐷 豚小屋に入らずんば子豚を得ず 🐷</h1>
-                <div class="subtitle">恐怖の豚男 - 多人数推理ゲーム</div>
-            </div>
-            <!-- モバイルサイズのタイトル -->
-            <div class="title-mobile">
-                <h1>🐷 豚小屋探検隊 🐷</h1>
-                <div class="subtitle">豚男からの脱出</div>
-            </div>
+            <h1>🐷 豚小屋探検隊 🐷</h1>
+            <p class="subtitle">豚小屋に入らずんば子豚を得ず</p>
         </div>
 
-        <!-- エラーメッセージ -->
         <div id="error-message" class="error-message"></div>
 
         <!-- ロビー画面 -->
-        <div id="lobby" class="screen lobby" style="display: block;">
-            <!-- ルール説明 -->
-            <div class="info-box">
-                <div class="rule-toggle">
-                    <button id="toggle-rules" class="btn btn-small">📋 ルールを表示/非表示</button>
+        <div id="lobby" class="lobby">
+            <div class="control-section">
+                <h3>新しいルームを作成</h3>
+                <div class="input-group">
+                    <label for="player-name-create">プレイヤー名:</label>
+                    <input type="text" id="player-name-create" placeholder="名前を入力">
                 </div>
-                <div id="rules-content" style="display: none;">
-                    <h3>🎯 ゲームの目的</h3>
-                    <ul class="rules-list">
-                        <li><strong>⛏️ 探検家チーム:</strong> 豚に変えられた子供たち（財宝）を全て救出する</li>
-                        <li><strong>🐷 豚男チーム:</strong> 罠を発動させるか、4ラウンド終了まで子供たちを隠し続ける</li>
-                    </ul>
-                    <h3>📋 ゲームの流れ</h3>
-                    <ul class="rules-list">
-                        <li>各プレイヤーに5枚のカードが配られる</li>
-                        <li>鍵を持つプレイヤーが他の人のカードを1枚選んで公開</li>
-                        <li>公開されたプレイヤーに鍵が移る</li>
-                        <li>全員が1回ずつカードを公開されたらラウンド終了</li>
-                        <li>次のラウンドでは配布枚数が1枚減る</li>
-                    </ul>
+                <div style="margin-bottom: 15px;">
+                    <input type="checkbox" id="use-password">
+                    <label for="use-password" style="display: inline; margin-left: 8px;">パスワードを設定する</label>
                 </div>
+                <div class="input-group" id="password-group" style="display: none;">
+                    <label for="room-password">パスワード:</label>
+                    <input type="password" id="room-password" placeholder="パスワードを入力">
+                </div>
+                <button id="create-room" class="btn">ルームを作成</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>ルームに参加</h3>
+                <div class="input-group">
+                    <label for="player-name-join">プレイヤー名:</label>
+                    <input type="text" id="player-name-join" placeholder="名前を入力">
+                </div>
+                <div class="input-group">
+                    <label for="room-id-input">ルームID:</label>
+                    <input type="text" id="room-id-input" placeholder="ルームIDを入力">
+                </div>
+                <div class="input-group" id="join-password-group" style="display: none;">
+                    <label for="join-password">パスワード:</label>
+                    <input type="password" id="join-password" placeholder="パスワードを入力">
+                </div>
+                <button id="join-room" class="btn">ルームに参加</button>
             </div>
 
-            <!-- ルーム操作 -->
-            <div class="room-controls">
-                <!-- ルーム作成 -->
-                <div class="control-section">
-                    <h3>🏠 新しいルームを作成</h3>
-                    <div class="input-group">
-                        <label for="player-name-create">プレイヤー名:</label>
-                        <input type="text" id="player-name-create" placeholder="あなたの名前を入力">
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="use-password">
-                        <label for="use-password">パスワードを設定する</label>
-                    </div>
-                    <div id="password-group" class="input-group" style="display: none;">
-                        <label for="room-password">パスワード:</label>
-                        <input type="password" id="room-password" placeholder="パスワードを入力">
-                    </div>
-                    <button id="create-room" class="btn">ルームを作成</button>
+            <div class="control-section">
+                <h3>ゲーム中のルームに再入場</h3>
+                <div class="input-group">
+                    <label for="rejoin-player-name">プレイヤー名:</label>
+                    <input type="text" id="rejoin-player-name" placeholder="元の名前を入力">
                 </div>
-
-                <!-- ルーム参加 -->
-                <div class="control-section">
-                    <h3>🚪 既存のルームに参加</h3>
-                    <div class="input-group">
-                        <label for="player-name-join">プレイヤー名:</label>
-                        <input type="text" id="player-name-join" placeholder="あなたの名前を入力">
-                    </div>
-                    <div class="input-group">
-                        <label for="room-id-input">ルームID:</label>
-                        <input type="text" id="room-id-input" placeholder="6桁のルームID" maxlength="6">
-                    </div>
-                    <div id="join-password-group" class="input-group" style="display: none;">
-                        <label for="join-password">パスワード:</label>
-                        <input type="password" id="join-password" placeholder="パスワードを入力">
-                    </div>
-                    <button id="join-room" class="btn">ルームに参加</button>
+                <div class="input-group">
+                    <label for="rejoin-room-id">ルームID:</label>
+                    <input type="text" id="rejoin-room-id" placeholder="ルームIDを入力">
                 </div>
-
-                <!-- 再入場 -->
-                <div class="control-section">
-                    <h3>🔄 ゲームに再入場</h3>
-                    <div class="input-group">
-                        <label for="rejoin-player-name">プレイヤー名:</label>
-                        <input type="text" id="rejoin-player-name" placeholder="元のプレイヤー名">
-                    </div>
-                    <div class="input-group">
-                        <label for="rejoin-room-id">ルームID:</label>
-                        <input type="text" id="rejoin-room-id" placeholder="6桁のルームID" maxlength="6">
-                    </div>
-                    <button id="rejoin-room" class="btn">再入場</button>
-                </div>
-
-                <!-- 観戦 -->
-                <div class="control-section">
-                    <h3>👁️ ゲームを観戦</h3>
-                    <div class="input-group">
-                        <label for="spectator-name">観戦者名:</label>
-                        <input type="text" id="spectator-name" placeholder="観戦者名を入力">
-                    </div>
-                    <div class="input-group">
-                        <label for="spectate-room-id">ルームID:</label>
-                        <input type="text" id="spectate-room-id" placeholder="6桁のルームID" maxlength="6">
-                    </div>
-                    <button id="spectate-room" class="btn">観戦開始</button>
-                </div>
+                <button id="rejoin-room" class="btn">ゲームに再入場</button>
             </div>
 
-            <!-- 統合されたゲーム一覧 -->
-            <div class="games-list">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                    <h3>🎮 ゲーム一覧</h3>
-                    <div class="refresh-buttons">
-                        <button id="refresh-rooms" class="btn btn-small">🔄 更新</button>
-                        <button id="toggle-game-view" class="btn btn-small">📋 表示切替</button>
-                    </div>
+            <div class="control-section">
+                <h3>観戦モード</h3>
+                <div class="input-group">
+                    <label for="spectator-name">観戦者名:</label>
+                    <input type="text" id="spectator-name" placeholder="名前を入力">
                 </div>
-                
-                <!-- 待機中のルーム -->
-                <div id="waiting-rooms-section">
-                    <h4 class="section-title">📝 待機中のルーム</h4>
-                    <div id="room-list-container">読み込み中...</div>
+                <div class="input-group">
+                    <label for="spectate-room-id">ルームID:</label>
+                    <input type="text" id="spectate-room-id" placeholder="ルームIDを入力">
                 </div>
-                
-                <!-- 進行中のゲーム -->
-                <div id="ongoing-games-section">
-                    <h4 class="section-title">🎯 進行中のゲーム</h4>
-                    <div id="ongoing-games-container">読み込み中...</div>
-                </div>
+                <button id="spectate-room" class="btn">観戦する</button>
             </div>
         </div>
 
-        <!-- その他の画面は省略（必要に応じて追加） -->
+        <!-- ルーム情報画面 -->
+        <div id="room-info" class="room-info">
+            <div class="room-id-display">ルームID: <span id="room-id-display"></span></div>
+            
+            <div class="players-list">
+                <h3>参加プレイヤー (<span id="player-count">0</span>/10)</h3>
+                <div id="players-list"></div>
+            </div>
+            
+            <div>
+                <button id="start-game" class="btn" style="display: none;">ゲーム開始 (3人以上必要)</button>
+                <button id="leave-room" class="btn">ルームを退出</button>
+                <button id="temp-leave-room" class="btn" style="display: none;">一時退出</button>
+                <button id="cancel-temp-leave" class="btn" style="display: none;">キャンセル</button>
+            </div>
+
+            <div class="temp-leave-section" id="temp-leave-section" style="display: none;">
+                <h4>⚠️ ゲーム中の一時退出</h4>
+                <p>ゲーム中ですが、一時的に退出できます。</p>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-board" class="game-board">
+            <div class="game-info">
+                <h3>ゲーム情報</h3>
+                <p>ラウンド: <span id="current-round">1</span>/4</p>
+                <p>財宝: <span id="treasure-found">0</span>/<span id="treasure-goal">7</span></p>
+                <p>罠: <span id="trap-triggered">0</span>/<span id="trap-goal">2</span></p>
+                <p>鍵保持者: <span id="key-holder-name">不明</span></p>
+                <p id="turn-message">待機中...</p>
+            </div>
+
+            <div class="my-cards-section">
+                <h3>あなたのカード</h3>
+                <p>子豚 <span id="my-treasure">0</span> / 罠 <span id="my-trap">0</span> / 空き <span id="my-empty">0</span></p>
+                <div id="my-cards-grid" class="my-cards-grid"></div>
+            </div>
+
+            <div>
+                <h3>他のプレイヤー</h3>
+                <div id="other-players-container" class="other-players-container"></div>
+            </div>
+
+            <button id="game-leave-room" class="btn">一時退出</button>
+            <button id="return-to-lobby" class="btn">ロビーに戻る</button>
+        </div>
+
+        <!-- 勝利画面 -->
+        <div id="victory-screen" class="victory-screen">
+            <div class="victory-content">
+                <h2 id="victory-title"></h2>
+                <p id="victory-message"></p>
+                <div id="winners-list"></div>
+                <button id="return-to-lobby-victory" class="btn">ロビーに戻る</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Socket.io CDN版 -->
+    <!-- 必要な隠し要素 -->
+    <div id="treasure-icons" style="display: none;"></div>
+    <div id="trap-icons" style="display: none;"></div>
+    <div id="game-room-id" style="display: none;"><span id="game-room-id-text"></span></div>
+    <div id="role-reveal" style="display: none;">
+        <div id="player-role"></div>
+        <p id="role-description"></p>
+        <img id="role-image" src="" alt="">
+    </div>
+
+    <!-- モーダル -->
+    <div id="name-input-modal" style="display: none;">
+        <div>
+            <h3>プレイヤー名を入力</h3>
+            <input type="text" id="modal-player-name" placeholder="名前を入力">
+            <button id="modal-join-btn" class="btn">参加</button>
+            <button id="modal-cancel-btn" class="btn">キャンセル</button>
+        </div>
+    </div>
+
+    <!-- Socket.io CDN -->
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    <script src="/js/ui.js"></script>
-    <script src="/js/socketClient.js"></script>
-    <script src="/js/game.js"></script>
-
+    
+    <!-- JavaScriptファイル -->
+    <script src="js/ui.js"></script>
+    <script src="js/socketClient.js"></script>
+    <script src="js/game.js"></script>
+    
     <script>
-        // ルール表示切り替え
-        function toggleRules() {
-            const content = document.getElementById('rules-content');
-            if (content) {
-                content.style.display = content.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-
-        // イベントリスナーの追加
-        document.addEventListener('DOMContentLoaded', function() {
-            const toggleRulesBtn = document.getElementById('toggle-rules');
-            if (toggleRulesBtn) {
-                toggleRulesBtn.addEventListener('click', toggleRules);
-            }
-
-            const toggleGameViewBtn = document.getElementById('toggle-game-view');
-            if (toggleGameViewBtn) {
-                toggleGameViewBtn.addEventListener('click', function() {
-                    const waitingSection = document.getElementById('waiting-rooms-section');
-                    const ongoingSection = document.getElementById('ongoing-games-section');
-                    
-                    if (waitingSection && ongoingSection) {
-                        if (waitingSection.classList.contains('hidden')) {
-                            waitingSection.classList.remove('hidden');
-                            ongoingSection.classList.add('hidden');
-                            this.textContent = '🎯 進行中';
-                        } else {
-                            waitingSection.classList.add('hidden');
-                            ongoingSection.classList.remove('hidden');
-                            this.textContent = '📝 待機中';
-                        }
-                    }
-                });
-            }
+        // パスワード表示切り替え
+        document.getElementById('use-password').addEventListener('change', (e) => {
+            document.getElementById('password-group').style.display = 
+                e.target.checked ? 'block' : 'none';
         });
     </script>
 </body>
